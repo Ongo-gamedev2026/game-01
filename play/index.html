@@ -3,292 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>귀여운 카페 경영 게임</title>
+    <title>귀여운 카페 경영 게임 - 스테이지 1</title>
     <style>
-        /* 기본 스타일 및 폰트 */
+        /* 기본 설정 및 폰트 */
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
         
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-
         :root {
-            --bg-color: #f7eedc;
-            --border-color: #5d4037;
-            --btn-green: #a5d6a7;
-            --btn-red: #ef9a9a;
-            --text-color: #3e2723;
+            --bg-color: #f4ead5;
+            --border-color: #5c3a21;
+            --btn-green: #9ccb96;
+            --btn-red: #ea8d8a;
+            --cup-color: #8ebbd0;
+            --text-color: #5c3a21;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background-color: var(--bg-color);
-            font-family: 'Jua', sans-serif;
-            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
+            background-color: #333;
+            font-family: 'Jua', sans-serif;
+            user-select: none;
+            overflow: hidden; /* 스크롤 방지 */
         }
 
-        /* 게임 컨테이너 (화면 고정) */
+        /* 게임 화면 컨테이너 (고정 해상도) */
         #game-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            height: 100%;
-            max-height: 800px;
+            width: 800px;
+            height: 600px;
             background-color: var(--bg-color);
-            border: 8px solid var(--border-color);
+            position: relative;
             border-radius: 20px;
+            border: 6px solid var(--border-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
-            transition: all 0.3s ease;
+            color: var(--text-color);
         }
 
+        /* 공통 테두리 스타일 */
         .thick-border {
             border: 4px solid var(--border-color);
             border-radius: 15px;
+            background-color: white;
         }
 
-        /* 상단 상태바 */
+        /* 상단 UI (돈, 시간, 목숨) */
         #top-bar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
+            padding: 15px 30px;
             font-size: 24px;
         }
 
-        .status-badge {
-            background-color: white;
-            padding: 5px 15px;
+        .status-box {
+            padding: 5px 20px;
             display: flex;
             align-items: center;
-            gap: 5px;
-        }
-
-        #timer { color: #d32f2f; }
-
-        /* 메인 게임 영역 */
-        #main-area {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 20px;
+            gap: 10px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
         }
 
         /* 손님 영역 */
         #customer-area {
+            position: absolute;
+            left: 50px;
+            top: 130px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
-            width: 120px;
+            width: 200px;
         }
 
-        #order-bubble {
-            background: white;
-            padding: 10px;
-            border-radius: 10px;
+        #speech-bubble {
+            width: 180px;
+            padding: 15px;
             text-align: center;
-            font-size: 18px;
-            position: absolute;
-            top: -70px;
-            width: 140px;
-            border: 3px solid var(--border-color);
-            opacity: 0;
-            transition: opacity 0.3s;
+            font-size: 20px;
+            position: relative;
+            margin-bottom: 20px;
+            border-radius: 20px;
         }
-        #order-bubble::after {
+        
+        #speech-bubble::after {
             content: '';
             position: absolute;
-            bottom: -10px; left: 50%;
+            bottom: -15px;
+            left: 50%;
             transform: translateX(-50%);
-            border-width: 10px 10px 0;
+            border-width: 15px 10px 0;
             border-style: solid;
             border-color: var(--border-color) transparent transparent transparent;
+        }
+        #speech-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 12px 8px 0;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+            z-index: 1;
         }
 
         #customer-emoji {
             font-size: 80px;
-            margin-bottom: 10px;
-            transition: transform 0.2s;
+            line-height: 1;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 0 rgba(0,0,0,0.2);
         }
 
-        /* 인내심 바 */
+        /* 인내심 게이지 */
         #patience-bar-container {
-            width: 100px;
-            height: 15px;
-            background: #e0e0e0;
-            border: 2px solid var(--border-color);
+            width: 100%;
+            height: 20px;
+            background-color: #d1d5db;
+            border: 4px solid var(--border-color);
             border-radius: 10px;
             overflow: hidden;
             margin-bottom: 5px;
         }
+
         #patience-bar {
-            height: 100%;
             width: 100%;
-            background: #4caf50;
-            transform-origin: left;
+            height: 100%;
+            background-color: #e57373;
             transition: width 0.1s linear, background-color 0.3s;
         }
-        .patience-label { font-size: 14px; background: white; padding: 2px 8px; border-radius: 10px; border: 2px solid var(--border-color); }
+        
+        .patience-label {
+            background-color: white;
+            padding: 2px 15px;
+            border-radius: 10px;
+            border: 3px solid var(--border-color);
+            font-size: 14px;
+        }
 
-        /* 컵과 테이블 영역 */
-        #center-area {
+        /* 중앙 컵 영역 */
+        #cup-area {
+            position: absolute;
+            left: 300px;
+            top: 200px;
+            width: 160px;
+            height: 200px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end;
-            height: 100%;
-            padding-bottom: 20px;
         }
 
         #cup {
-            width: 100px;
-            height: 120px;
-            border: 4px solid #81d4fa;
+            width: 120px;
+            height: 140px;
+            border: 6px solid var(--cup-color);
             border-top: none;
             border-radius: 0 0 20px 20px;
             position: relative;
-            background: rgba(255,255,255,0.5);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column-reverse; /* 재료가 아래부터 쌓임 */
+            background-color: rgba(255,255,255,0.5);
             z-index: 2;
         }
 
-        .liquid {
-            width: 100%;
-            transition: height 0.3s, background-color 0.3s;
+        /* 컵 손잡이 */
+        #cup::after {
+            content: '';
+            position: absolute;
+            right: -36px;
+            top: 20px;
+            width: 30px;
+            height: 60px;
+            border: 6px solid var(--cup-color);
+            border-left: none;
+            border-radius: 0 30px 30px 0;
         }
 
-        #table {
+        #liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background-color: transparent;
+            border-radius: 0 0 14px 14px;
+            transition: height 0.3s ease, background-color 0.4s ease;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-end;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .ice-cube {
+            font-size: 24px;
+            margin: 2px;
+            animation: float 2s infinite ease-in-out alternate;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+
+        #coaster {
             width: 140px;
             height: 20px;
-            background-color: #8d6e63;
+            background-color: #a06b49;
+            border: 4px solid var(--border-color);
             border-radius: 50%;
             margin-top: -10px;
-            border: 2px solid var(--border-color);
             z-index: 1;
         }
 
-        /* 우측 재료 및 레시피 */
-        #right-panel {
+        /* 우측 레시피 및 재료 영역 */
+        #right-area {
+            position: absolute;
+            right: 30px;
+            top: 80px;
+            width: 220px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            width: 130px;
+            gap: 15px;
         }
 
         #recipe-board {
-            background: white;
-            padding: 10px;
-            font-size: 14px;
-            margin-bottom: 10px;
+            padding: 15px;
+            background-color: white;
+            font-size: 16px;
         }
+        
+        #recipe-board h3 {
+            margin: 0 0 10px 0;
+            text-align: center;
+            color: #d86c6c;
+        }
+
         .recipe-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             border-bottom: 1px dashed #ccc;
-            padding: 3px 0;
+            padding: 5px 0;
+        }
+        .recipe-item:last-child {
+            border-bottom: none;
         }
 
         .ingredient-btn {
-            background: white;
             padding: 10px;
-            font-size: 18px;
+            font-size: 20px;
+            font-family: 'Jua', sans-serif;
             cursor: pointer;
-            text-align: center;
-            transition: transform 0.1s, background-color 0.1s;
-        }
-        .ingredient-btn:active {
-            transform: scale(0.95);
-            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 0 var(--border-color);
+            transition: transform 0.1s, box-shadow 0.1s;
         }
 
-        /* 하단 액션 버튼 */
-        #bottom-bar {
+        .ingredient-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 var(--border-color);
+        }
+
+        /* 하단 테이블과 버튼 */
+        #table-line {
+            position: absolute;
+            bottom: 110px;
+            left: 20px;
+            width: 760px;
+            height: 10px;
+            background-color: #8b5a33;
+            border: 3px solid var(--border-color);
+            border-radius: 5px;
+        }
+
+        #bottom-buttons {
+            position: absolute;
+            bottom: 25px;
+            left: 0;
+            width: 100%;
             display: flex;
             justify-content: center;
-            gap: 20px;
-            padding: 20px;
-            background: rgba(0,0,0,0.05);
-            border-top: 4px solid var(--border-color);
+            gap: 30px;
         }
 
         .action-btn {
-            padding: 15px 30px;
-            font-size: 22px;
-            font-family: inherit;
+            width: 320px;
+            padding: 15px;
+            font-size: 28px;
+            font-family: 'Jua', sans-serif;
+            color: var(--text-color);
+            border-radius: 20px;
             cursor: pointer;
-            transition: transform 0.1s;
+            box-shadow: 0 6px 0 var(--border-color);
+            transition: transform 0.1s, box-shadow 0.1s;
         }
-        .action-btn:active { transform: scale(0.95); }
+        
+        .action-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 var(--border-color);
+        }
+
         #btn-serve { background-color: var(--btn-green); }
         #btn-trash { background-color: var(--btn-red); }
 
-        /* 오버레이 (시작, 게임오버) */
+        /* 화면 오버레이 (시작, 종료) */
         .overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background-color: rgba(244, 234, 213, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
-            text-align: center;
+            z-index: 10;
         }
-        .hidden { display: none !important; }
+
+        .overlay h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: var(--text-color);
+            text-shadow: 2px 2px 0 white;
+        }
         
-        .title { font-size: 40px; color: #ff5722; margin-bottom: 10px; text-shadow: 2px 2px white; }
-        .subtitle { font-size: 20px; margin-bottom: 30px; color: #555; }
-        
+        .overlay p {
+            font-size: 20px;
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
         .start-btn {
-            background: #ffeb3b;
             padding: 15px 40px;
             font-size: 28px;
-            border-radius: 30px;
+            background-color: var(--btn-green);
+            color: var(--text-color);
+            border-radius: 20px;
             cursor: pointer;
-            animation: pulse 1.5s infinite;
+            box-shadow: 0 6px 0 var(--border-color);
+            font-family: 'Jua', sans-serif;
         }
 
-        #ranking-board {
-            background: white;
-            border: 4px solid var(--border-color);
-            border-radius: 15px;
-            padding: 15px;
-            margin-top: 20px;
-            width: 80%;
-            max-width: 300px;
-            text-align: left;
-        }
-        .ranking-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-            padding: 5px 0;
-            border-bottom: 1px dashed #ccc;
-        }
-
-        #result-stars { font-size: 50px; color: #ffeb3b; text-shadow: 1px 1px #000; margin: 10px 0; }
-        #new-record-alert { color: #f44336; font-size: 24px; font-weight: bold; animation: pulse 1s infinite; margin-bottom: 10px; display: none; }
-
-        /* 애니메이션 */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+        .hidden { display: none !important; }
+        
+        /* 이펙트 애니메이션 */
         @keyframes shake {
             0% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -298,252 +359,182 @@
         }
         .shake-anim { animation: shake 0.3s ease-in-out; }
 
-        /* 피버 타임 및 보너스 텍스트 애니메이션 */
-        @keyframes feverBlink {
-            0% { border-color: var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-            50% { border-color: #ffeb3b; box-shadow: 0 0 40px #ffeb3b; }
-            100% { border-color: var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        }
-        .fever-mode {
-            animation: feverBlink 0.5s infinite !important;
-        }
-        
-        #fever-text {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            color: #ff5722; font-size: 24px; font-weight: bold; text-shadow: 2px 2px white;
-            display: none; z-index: 20;
-        }
-        .fever-mode #fever-text { display: block; }
-
-        #floating-msg {
-            position: absolute;
-            left: 50px; top: 100px;
-            color: #4caf50; font-size: 24px; font-weight: bold; text-shadow: 1px 1px white;
-            pointer-events: none; z-index: 30;
-            opacity: 0;
-            transition: all 0.5s ease-out;
-        }
-        .float-up {
-            opacity: 1 !important;
-            transform: translateY(-40px);
-        }
-
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        
-        <!-- 상단 상태바 -->
-        <div id="top-bar">
-            <div class="status-badge thick-border">💰 <span id="money-display">0</span>원</div>
-            <div class="status-badge thick-border">⏱️ <span id="timer">120</span>초</div>
-            <div class="status-badge thick-border"><span id="hearts-display">❤️❤️❤️</span></div>
+<div id="game-container">
+    
+    <!-- 상단 상태바 -->
+    <div id="top-bar">
+        <div class="status-box thick-border">
+            <span>💰</span> <span id="ui-money">0원</span>
         </div>
-
-        <!-- 메인 게임 영역 -->
-        <div id="main-area">
-            
-            <!-- 손님 -->
-            <div id="customer-area">
-                <div id="order-bubble" class="thick-border">주문 대기중...</div>
-                <div id="customer-emoji">👱</div>
-                <div id="patience-bar-container">
-                    <div id="patience-bar"></div>
-                </div>
-                <div class="patience-label">인내심</div>
+        <div style="display: flex; gap: 15px;">
+            <div class="status-box thick-border">
+                <span>⏱️</span> <span id="ui-time">120초</span>
             </div>
-
-            <!-- 가운데 컵 -->
-            <div id="center-area">
-                <div id="cup">
-                    <!-- 액체가 여기에 추가됨 -->
-                </div>
-                <div id="table"></div>
-            </div>
-
-            <!-- 우측 재료/레시피 -->
-            <div id="right-panel">
-                <div id="recipe-board" class="thick-border">
-                    <div style="text-align:center; font-weight:bold; margin-bottom:5px;">📜 레시피</div>
-                    <div class="recipe-item"><span>에스프레소</span><span>☕</span></div>
-                    <div class="recipe-item"><span>카페라떼</span><span>☕🥛</span></div>
-                    <div class="recipe-item"><span>아이스라떼</span><span>☕🥛🧊</span></div>
-                </div>
-                
-                <button class="ingredient-btn thick-border" onclick="addIngredient('espresso')">☕ 에스프레소</button>
-                <button class="ingredient-btn thick-border" onclick="addIngredient('milk')">🥛 우유</button>
-                <button class="ingredient-btn thick-border" onclick="addIngredient('ice')">🧊 얼음</button>
+            <div class="status-box thick-border" id="ui-hearts">
+                ❤️❤️❤️
             </div>
         </div>
-
-        <!-- 하단 버튼 -->
-        <div id="bottom-bar">
-            <button id="btn-serve" class="action-btn thick-border" onclick="serveDrink()">
-                🌿 서빙하기
-            </button>
-            <button id="btn-trash" class="action-btn thick-border" onclick="throwAway()">
-                🗑️ 버리기
-            </button>
-        </div>
-
-        <!-- 피버타임 및 플로팅 텍스트 -->
-        <div id="fever-text">🔥 피버 타임! 수익 2배 🔥</div>
-        <div id="floating-msg">빠른 서빙 팁! +50원</div>
-
-        <!-- 시작 화면 -->
-        <div id="start-screen" class="overlay">
-            <div class="title">☕ 귀여운 카페 경영 ☕</div>
-            <div class="subtitle">주문에 맞게 음료를 만들고 서빙하세요!</div>
-            <button class="start-btn thick-border" onclick="startGame()">게임 시작</button>
-            
-            <div id="ranking-board">
-                <div style="text-align:center; font-weight:bold; font-size:20px; margin-bottom:10px;">🏆 최고 수익 랭킹 TOP 5 🏆</div>
-                <div id="start-ranking-list">
-                    <!-- 랭킹 데이터가 여기에 들어감 -->
-                </div>
-            </div>
-        </div>
-
-        <!-- 게임 오버/결과 화면 -->
-        <div id="game-over-screen" class="overlay hidden">
-            <div class="title" id="result-title">영업 종료!</div>
-            <div id="new-record-alert">🎉 신기록 달성! 🎉</div>
-            <div id="result-stars">⭐</div>
-            <div class="subtitle" id="result-desc">총 수익: 0원</div>
-            <button class="start-btn thick-border" onclick="showStartScreen()">처음으로</button>
-        </div>
-
     </div>
+
+    <!-- 좌측 손님 영역 -->
+    <div id="customer-area" class="hidden">
+        <div id="speech-bubble" class="thick-border">
+            <span id="customer-order-text">카페라떼<br>부탁해요!</span>
+        </div>
+        <div id="customer-emoji">👱</div>
+        <div id="patience-bar-container">
+            <div id="patience-bar"></div>
+        </div>
+        <div class="patience-label">인내심</div>
+    </div>
+
+    <!-- 중앙 컵 영역 -->
+    <div id="cup-area">
+        <div id="cup">
+            <div id="liquid"></div>
+        </div>
+        <div id="coaster"></div>
+    </div>
+
+    <!-- 우측 레시피 및 재료 -->
+    <div id="right-area">
+        <div id="recipe-board" class="thick-border">
+            <h3>📜 레시피</h3>
+            <div class="recipe-item">
+                <span>에스프레소</span> <span>☕</span>
+            </div>
+            <div class="recipe-item">
+                <span>카페라떼</span> <span>☕+🥛</span>
+            </div>
+            <div class="recipe-item">
+                <span>아이스 라떼</span> <span>☕+🥛+🧊</span>
+            </div>
+        </div>
+        
+        <button class="ingredient-btn thick-border" onclick="addIngredient('espresso')">
+            ☕ 에스프레소
+        </button>
+        <button class="ingredient-btn thick-border" onclick="addIngredient('milk')">
+            🥛 우유
+        </button>
+        <button class="ingredient-btn thick-border" onclick="addIngredient('ice')">
+            🧊 얼음
+        </button>
+    </div>
+
+    <!-- 하단 테이블과 버튼 -->
+    <div id="table-line"></div>
+    <div id="bottom-buttons">
+        <button id="btn-serve" class="action-btn thick-border" onclick="serveDrink()">
+            🌿 서빙하기
+        </button>
+        <button id="btn-trash" class="action-btn thick-border" onclick="throwAway()">
+            🗑️ 버리기
+        </button>
+    </div>
+
+    <!-- 시작 화면 -->
+    <div id="start-screen" class="overlay">
+        <h1>☕ 낭만 카페 영업시작</h1>
+        <p>
+            재료를 조합해 손님이 원하는 음료를 만드세요!<br>
+            <strong>클리어 목표:</strong> 120초 안에 1,000원 이상 벌기<br>
+            <strong>실패 조건:</strong> 시간 내 목표 미달 또는 손님 3명 놓치기<br>
+            (마우스로 클릭해서 플레이합니다)
+        </p>
+        <button class="start-btn thick-border" onclick="startGame()">영업 시작하기</button>
+    </div>
+
+    <!-- 결과 화면 -->
+    <div id="result-screen" class="overlay hidden">
+        <h1 id="result-title">영업 종료</h1>
+        <h2 id="result-stars" style="font-size: 40px; margin: 10px 0;">⭐⭐⭐</h2>
+        <p id="result-desc">총 수익: 0원</p>
+        <button class="start-btn thick-border" onclick="resetGame()">다시 하기</button>
+    </div>
+
+</div>
 
 <script>
     /* =========================================
-       설정값 (기획서에 없는 세부 수치들)
+       [설정값] 기획서에 명시되지 않아 임의로 정한 수치들
        ========================================= */
     const CONFIG = {
-        GAME_TIME_SEC: 120,    // 전체 게임 시간
-        PATIENCE_SEC: 20,      // 손님 1명의 대기 시간
-        DRINK_PRICE: 250,      // 음료 1잔 서빙 시 기본 수익
-        MAX_HEARTS: 3,         // 기본 목숨
-        MAX_INGREDIENTS: 3     // 컵에 들어가는 최대 재료 수
+        GAME_TIME_SEC: 120,       // 전체 게임 시간 (기획서 120초)
+        MAX_HEARTS: 3,            // 목숨 개수 (기획서 3개)
+        DRINK_PRICE: 250,         // 음료 1잔 기본 가격 (1000원을 달성하기 위해 4잔 서빙 필요)
+        PATIENCE_SEC: 20,         // 손님 한 명이 기다려주는 시간 (20초)
+        MAX_INGREDIENTS: 3,       // 컵에 담을 수 있는 최대 재료 수
+        STAR1_GOAL: 1000,         // 별 1개 조건 (기획서 기준)
+        STAR2_GOAL: 2000,         // 별 2개 조건
+        STAR3_GOAL: 3000          // 별 3개 조건
     };
 
     /* =========================================
-       게임 데이터 및 상태
+       레시피 데이터 (색상 변화 구현)
        ========================================= */
     const RECIPES = [
-        { name: '에스프레소', ingredients: ['espresso'], text: '에스프레소<br>부탁해요!' },
-        { name: '카페라떼', ingredients: ['espresso', 'milk'], text: '카페라떼<br>주세요!' },
-        { name: '아이스 라떼', ingredients: ['espresso', 'milk', 'ice'], text: '아이스 라떼<br>한 잔이요!' }
+        { id: 'espresso', name: '에스프레소', ingredients: ['espresso'], color: '#3e2723', requestText: '에스프레소<br>부탁해요!' },
+        { id: 'cafelatte', name: '카페라떼', ingredients: ['espresso', 'milk'], color: '#d7ccc8', requestText: '카페라떼<br>부탁해요!' },
+        { id: 'icedlatte', name: '아이스 라떼', ingredients: ['espresso', 'milk', 'ice'], color: '#d7ccc8', requestText: '아이스 라떼<br>부탁해요!' }
     ];
-    const CUSTOMERS = ['👱', '👩', '👨', '👵', '👴', '👧'];
-    
-    // 재료별 시각적 색상 설정
-    const COLORS = {
-        'espresso': '#3e2723', // 진한 커피색
-        'milk': '#ffffff',     // 흰색
-        'ice': '#b3e5fc'       // 얼음(하늘색)
-    };
 
+    const CUSTOMER_FACES = ['👱', '👩', '👨', '👧', '👵', '🧔'];
+
+    /* =========================================
+       게임 상태 변수
+       ========================================= */
     let currentMoney = 0;
     let timeLeft = CONFIG.GAME_TIME_SEC;
     let hearts = CONFIG.MAX_HEARTS;
-    let currentCup = []; // 현재 컵에 담긴 재료 배열
-    let currentOrder = null; // 현재 손님의 주문 데이터
     
+    let currentCup = []; // 현재 컵에 담긴 재료 배열
+    let currentOrder = null; // 현재 손님이 주문한 레시피 객체
     let customerTimer = 0; // 손님 인내심 게이지용 (밀리초)
     let patienceInterval = null;
     let gameTimerInterval = null;
     let isPlaying = false;
 
-    // 추가된 상태 변수들 (피버, 콤보, 오디오)
-    let comboCount = 0;
-    let isFeverTime = false;
-    let feverTimeout = null;
-    let audioCtx = null;
-
     /* =========================================
        DOM 요소 캐싱
        ========================================= */
-    const startScreen = document.getElementById('start-screen');
-    const gameOverScreen = document.getElementById('game-over-screen');
-    const moneyDisplay = document.getElementById('money-display');
-    const timerDisplay = document.getElementById('timer');
-    const heartsDisplay = document.getElementById('hearts-display');
-    
+    const uiMoney = document.getElementById('ui-money');
+    const uiTime = document.getElementById('ui-time');
+    const uiHearts = document.getElementById('ui-hearts');
+    const liquidDiv = document.getElementById('liquid');
+    const customerArea = document.getElementById('customer-area');
+    const customerOrderText = document.getElementById('customer-order-text');
     const customerEmoji = document.getElementById('customer-emoji');
-    const orderBubble = document.getElementById('order-bubble');
     const patienceBar = document.getElementById('patience-bar');
-    
+    const startScreen = document.getElementById('start-screen');
+    const resultScreen = document.getElementById('result-screen');
     const resultTitle = document.getElementById('result-title');
     const resultStars = document.getElementById('result-stars');
     const resultDesc = document.getElementById('result-desc');
-    const newRecordAlert = document.getElementById('new-record-alert');
-    const startRankingList = document.getElementById('start-ranking-list');
-    const gameContainer = document.getElementById('game-container');
-    const floatingMsg = document.getElementById('floating-msg');
 
     /* =========================================
-       랭킹(로컬 스토리지) 관리 로직
+       게임 초기화 및 시작 로직
        ========================================= */
-    function getRankings() {
-        let ranks = localStorage.getItem('cafeGameRankings');
-        return ranks ? JSON.parse(ranks) : [];
-    }
-
-    function saveRanking(money) {
-        let ranks = getRankings();
-        ranks.push(money);
-        // 내림차순 정렬 후 상위 5개만 유지
-        ranks.sort((a, b) => b - a);
-        ranks = ranks.slice(0, 5);
-        localStorage.setItem('cafeGameRankings', JSON.stringify(ranks));
-        return ranks.indexOf(money) === 0 && money > 0; // 1등(신기록) 여부 반환
-    }
-
-    function renderStartRanking() {
-        let ranks = getRankings();
-        startRankingList.innerHTML = '';
-        if (ranks.length === 0) {
-            startRankingList.innerHTML = '<div class="ranking-item" style="justify-content:center; color:#888;">기록이 없습니다.</div>';
-            return;
-        }
-        ranks.forEach((score, index) => {
-            startRankingList.innerHTML += `<div class="ranking-item"><span>${index + 1}위</span><span>${score}원</span></div>`;
-        });
-    }
-
-    /* =========================================
-       게임 흐름 제어 (시작, 종료)
-       ========================================= */
-    function showStartScreen() {
-        gameOverScreen.classList.add('hidden');
-        startScreen.classList.remove('hidden');
-        renderStartRanking();
-    }
-
     function startGame() {
         startScreen.classList.add('hidden');
-        
-        // 오디오 컨텍스트 초기화 (브라우저 정책상 사용자 상호작용 시점에 생성/재개)
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        } else if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-
         resetGameData();
         isPlaying = true;
         updateUI();
-        
-        // 전체 게임 타이머 시작
-        gameTimerInterval = setInterval(() => {
-            timeLeft--;
-            timerDisplay.innerText = timeLeft;
-            if (timeLeft <= 0) endGame('timeup');
-        }, 1000);
-
         spawnCustomer();
+        
+        // 전체 게임 타이머 (1초마다 감소)
+        gameTimerInterval = setInterval(() => {
+            if (!isPlaying) return;
+            timeLeft--;
+            updateUI();
+            if (timeLeft <= 0) {
+                endGame(true); // 시간 종료로 인한 게임 오버(정산)
+            }
+        }, 1000);
     }
 
     function resetGameData() {
@@ -551,161 +542,113 @@
         timeLeft = CONFIG.GAME_TIME_SEC;
         hearts = CONFIG.MAX_HEARTS;
         currentCup = [];
-        comboCount = 0;
-        isFeverTime = false;
-        clearTimeout(feverTimeout);
-        gameContainer.classList.remove('fever-mode');
         updateCupVisual();
     }
 
-    function endGame(reason) {
-        isPlaying = false;
-        clearInterval(gameTimerInterval);
-        clearInterval(patienceInterval);
-
-        // 결과 계산 로직
-        let stars = 0;
-        if (currentMoney >= 3000) stars = 3;
-        else if (currentMoney >= 2000) stars = 2;
-        else if (currentMoney >= 1000) stars = 1;
-
-        if (reason === 'no_hearts' || stars === 0) {
-            resultTitle.innerText = "게임 오버 😭";
-            resultTitle.style.color = "#d32f2f";
-            resultStars.innerText = "별 0개.. 1000원 이상 벌어야 해요!";
-            resultStars.style.fontSize = "24px";
-        } else {
-            resultTitle.innerText = "영업 종료! 수고하셨습니다 👏";
-            resultTitle.style.color = "#388e3c";
-            resultStars.innerText = "⭐".repeat(stars);
-            resultStars.style.fontSize = "50px";
-        }
-
-        resultDesc.innerText = `총 수익: ${currentMoney}원`;
-
-        // 랭킹 저장 및 신기록 표시
-        let isNewRecord = saveRanking(currentMoney);
-        newRecordAlert.style.display = isNewRecord ? 'block' : 'none';
-
-        gameOverScreen.classList.remove('hidden');
+    function updateUI() {
+        uiMoney.innerText = `${currentMoney}원`;
+        uiTime.innerText = `${timeLeft}초`;
+        
+        let heartStr = '';
+        for(let i=0; i<hearts; i++) heartStr += '❤️';
+        for(let i=hearts; i<CONFIG.MAX_HEARTS; i++) heartStr += '🖤';
+        uiHearts.innerText = heartStr;
     }
 
     /* =========================================
-       손님 로직
+       손님 로직 (생성, 인내심 감소, 놓침)
        ========================================= */
     function spawnCustomer() {
-        if (!isPlaying) return;
-
-        // 랜덤 손님 & 랜덤 주문
-        const emoji = CUSTOMERS[Math.floor(Math.random() * CUSTOMERS.length)];
+        customerArea.classList.remove('hidden');
+        
+        // 랜덤 레시피와 얼굴 지정
         currentOrder = RECIPES[Math.floor(Math.random() * RECIPES.length)];
+        customerEmoji.innerText = CUSTOMER_FACES[Math.floor(Math.random() * CUSTOMER_FACES.length)];
+        customerOrderText.innerHTML = currentOrder.requestText;
         
-        customerEmoji.innerText = emoji;
-        customerEmoji.style.transform = 'scale(0)';
-        setTimeout(() => customerEmoji.style.transform = 'scale(1)', 50); // 등장 애니메이션
-
-        orderBubble.innerHTML = currentOrder.text;
-        orderBubble.style.opacity = '1';
-
-        // 인내심 타이머 시작
+        // 인내심 초기화
         customerTimer = CONFIG.PATIENCE_SEC * 1000;
+        patienceBar.style.width = '100%';
+        patienceBar.style.backgroundColor = '#e57373'; // 초기 붉은색
+
         clearInterval(patienceInterval);
-        patienceInterval = setInterval(updatePatience, 100);
-    }
+        patienceInterval = setInterval(() => {
+            if (!isPlaying) return;
+            customerTimer -= 50; // 50ms 마다 갱신하여 부드럽게 줄어들게 함
+            let percent = (customerTimer / (CONFIG.PATIENCE_SEC * 1000)) * 100;
+            patienceBar.style.width = `${percent}%`;
 
-    function updatePatience() {
-        customerTimer -= 100;
-        let percentage = (customerTimer / (CONFIG.PATIENCE_SEC * 1000)) * 100;
-        
-        patienceBar.style.width = `${percentage}%`;
-        
-        // 색상 변화 (여유 -> 경고 -> 위험)
-        if (percentage > 50) patienceBar.style.backgroundColor = '#4caf50';
-        else if (percentage > 20) patienceBar.style.backgroundColor = '#ff9800';
-        else patienceBar.style.backgroundColor = '#f44336';
+            // 시간이 얼마 안 남으면 주황색 경고
+            if (percent < 30) patienceBar.style.backgroundColor = '#ff9800';
 
-        if (customerTimer <= 0) {
-            missCustomer();
-        }
+            if (customerTimer <= 0) {
+                missCustomer();
+            }
+        }, 50);
     }
 
     function missCustomer() {
         clearInterval(patienceInterval);
         customerEmoji.innerText = '💢'; // 화난 표정
-        orderBubble.innerHTML = "너무 늦어!<br>갈래!";
-        comboCount = 0; // 손님을 놓치면 콤보 초기화
+        customerOrderText.innerHTML = "너무 늦어!<br>갈래!";
         
         setTimeout(() => {
             hearts--;
             updateUI();
             if (hearts <= 0) {
-                endGame('no_hearts');
+                endGame(false); // 목숨 소진으로 즉시 실패
             } else {
-                spawnCustomer();
+                spawnCustomer(); // 다음 손님 등장
             }
         }, 1000);
     }
 
     /* =========================================
-       재료 조합 및 버튼 액션 로직
+       음료 제작 로직 (재료 넣기, 색상 섞기)
        ========================================= */
     function addIngredient(ingName) {
         if (!isPlaying || currentCup.length >= CONFIG.MAX_INGREDIENTS) return;
         
-        playSound('pop'); // 재료 넣을 때 뾱 소리
         currentCup.push(ingName);
         updateCupVisual();
     }
 
     function updateCupVisual() {
-        const cupDiv = document.getElementById('cup');
-        cupDiv.innerHTML = ''; // 초기화
+        const fillPercent = (currentCup.length / CONFIG.MAX_INGREDIENTS) * 100;
+        liquidDiv.style.height = `${fillPercent}%`;
+        
+        // 색상 섞기 결정
+        let hasEspresso = currentCup.includes('espresso');
+        let hasMilk = currentCup.includes('milk');
+        let hasIce = currentCup.includes('ice');
 
-        // 배열을 순회하며 액체 레이어 쌓기
-        // 라떼(커피+우유) 처럼 섞이는 효과를 위해 색상을 혼합하는 로직을 간단히 구현
-        let mixedColor = '';
-        let hasIce = false;
+        liquidDiv.innerHTML = ''; // 얼음 초기화
 
-        currentCup.forEach((ing, index) => {
-            if (ing === 'ice') {
-                hasIce = true;
-                return; // 얼음은 배경색에 섞이지 않고 텍스트로 표현
-            }
-
-            // 첫 액체
-            if (index === 0 || mixedColor === '') {
-                mixedColor = COLORS[ing];
-            } else {
-                // 두 번째 액체 혼합 (단순화: 에스프레소+우유 = 라떼색)
-                if ((mixedColor === COLORS['espresso'] && ing === 'milk') || 
-                    (mixedColor === COLORS['milk'] && ing === 'espresso')) {
-                    mixedColor = '#bcaaa4'; // 라떼 색상
+        if (currentCup.length === 0) {
+            liquidDiv.style.backgroundColor = 'transparent';
+        } else {
+            // 커피와 우유가 섞이는 시각적 효과 구현
+            if (hasEspresso && hasMilk) liquidDiv.style.backgroundColor = '#d7ccc8'; // 라떼 색
+            else if (hasMilk && !hasEspresso) liquidDiv.style.backgroundColor = '#ffffff'; // 우유 색
+            else if (hasEspresso && !hasMilk) liquidDiv.style.backgroundColor = '#3e2723'; // 에스프레소 색
+            else liquidDiv.style.backgroundColor = '#e0f7fa'; // 얼음만 있을때 물 느낌
+            
+            // 얼음이 있다면 시각적으로 추가
+            if (hasIce) {
+                let iceCount = currentCup.filter(i => i === 'ice').length;
+                for(let i=0; i<iceCount * 2; i++) {
+                    let ice = document.createElement('div');
+                    ice.className = 'ice-cube';
+                    ice.innerText = '🧊';
+                    liquidDiv.appendChild(ice);
                 }
             }
-        });
-
-        // 컵에 그리기
-        if (currentCup.length > 0) {
-            let heightPercent = (currentCup.length / CONFIG.MAX_INGREDIENTS) * 100;
-            
-            const liquidDiv = document.createElement('div');
-            liquidDiv.className = 'liquid';
-            liquidDiv.style.height = `${heightPercent}%`;
-            liquidDiv.style.backgroundColor = mixedColor !== '' ? mixedColor : 'transparent';
-            
-            // 얼음이 있으면 얼음 이모지 표시
-            if (hasIce) {
-                liquidDiv.style.display = 'flex';
-                liquidDiv.style.alignItems = 'center';
-                liquidDiv.style.justifyContent = 'center';
-                liquidDiv.innerText = '🧊🧊';
-                liquidDiv.style.fontSize = '20px';
-            }
-            
-            cupDiv.appendChild(liquidDiv);
         }
     }
 
+    /* =========================================
+       서빙 및 버리기 로직
+       ========================================= */
     function serveDrink() {
         if (!isPlaying || currentCup.length === 0 || !currentOrder) return;
 
@@ -716,30 +659,11 @@
         if (cupSorted === orderSorted) {
             // 정답!
             clearInterval(patienceInterval);
-            playSound('ding'); // 성공 띠링 소리
-            
-            // 피버 타임 수익 계산 (수익 2배)
-            let earned = isFeverTime ? CONFIG.DRINK_PRICE * 2 : CONFIG.DRINK_PRICE;
-            
-            // 빠른 서빙 팁 보너스 (인내심이 절반 이상 남았을 때)
-            let isFastServe = customerTimer > (CONFIG.PATIENCE_SEC * 1000) / 2;
-            if (isFastServe) {
-                earned += 50;
-                showFloatingMessage("빠른 서빙! +50원");
-            }
-
-            currentMoney += earned;
-            
-            // 콤보 및 피버 타임 로직
-            comboCount++;
-            if (comboCount >= 3 && !isFeverTime) {
-                activateFeverTime();
-            }
-
+            currentMoney += CONFIG.DRINK_PRICE;
             updateUI();
             
             customerEmoji.innerText = '😍';
-            orderBubble.innerHTML = "완벽해요!<br>고마워요!";
+            customerOrderText.innerHTML = "완벽해요!<br>고마워요!";
             
             throwAway(); // 컵 비우기
             
@@ -747,67 +671,9 @@
                 if(isPlaying) spawnCustomer();
             }, 800);
         } else {
-            // 오답!
-            comboCount = 0; // 실수하면 콤보 초기화
+            // 오답! (기획서에 오답 페널티가 없으므로 컵만 흔들림 효과)
             document.getElementById('cup').classList.add('shake-anim');
             setTimeout(() => document.getElementById('cup').classList.remove('shake-anim'), 300);
-        }
-    }
-
-    // 피버 타임 활성화
-    function activateFeverTime() {
-        isFeverTime = true;
-        gameContainer.classList.add('fever-mode');
-        comboCount = 0; // 피버가 시작되면 콤보 다시 초기화
-
-        clearTimeout(feverTimeout);
-        feverTimeout = setTimeout(() => {
-            isFeverTime = false;
-            gameContainer.classList.remove('fever-mode');
-        }, 10000); // 10초 유지
-    }
-
-    // 플로팅 메시지 띄우기 애니메이션
-    function showFloatingMessage(text) {
-        floatingMsg.innerText = text;
-        floatingMsg.style.transition = 'none';
-        floatingMsg.classList.remove('float-up');
-        floatingMsg.style.opacity = '1';
-        floatingMsg.style.transform = 'translateY(0)';
-        
-        // 브라우저 렌더링 프레임 대기 후 애니메이션 적용
-        setTimeout(() => {
-            floatingMsg.style.transition = 'all 0.5s ease-out';
-            floatingMsg.classList.add('float-up');
-        }, 10);
-    }
-
-    // 효과음 재생 함수 (Web Audio API) - 외부 파일 없이 생성
-    function playSound(type) {
-        if (!audioCtx) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        if (type === 'pop') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.05);
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
-        } else if (type === 'ding') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
         }
     }
 
@@ -817,21 +683,55 @@
         updateCupVisual();
     }
 
-    function updateUI() {
-        moneyDisplay.innerText = currentMoney;
-        heartsDisplay.innerText = '❤️'.repeat(hearts) + '🖤'.repeat(CONFIG.MAX_HEARTS - hearts);
+    /* =========================================
+       게임 종료 및 정산
+       ========================================= */
+    function endGame(isTimeOver) {
+        isPlaying = false;
+        clearInterval(patienceInterval);
+        clearInterval(gameTimerInterval);
+        
+        customerArea.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        
+        if (hearts <= 0) {
+            // 실패 조건 2: 손님이 화내며 나가서 하트가 다 닳았을 때
+            resultTitle.innerText = "영업 실패...";
+            resultStars.innerText = "💔💔💔";
+            resultDesc.innerText = "손님들이 화가 나서 다 가버렸어요.\n벌어들인 돈: " + currentMoney + "원";
+        } else {
+            // 시간 종료 정산
+            if (currentMoney >= CONFIG.STAR3_GOAL) {
+                resultTitle.innerText = "영업 대성공!";
+                resultStars.innerText = "⭐⭐⭐";
+            } else if (currentMoney >= CONFIG.STAR2_GOAL) {
+                resultTitle.innerText = "영업 성공!";
+                resultStars.innerText = "⭐⭐";
+            } else if (currentMoney >= CONFIG.STAR1_GOAL) {
+                resultTitle.innerText = "무난한 하루!";
+                resultStars.innerText = "⭐";
+            } else {
+                // 실패 조건 1: 1000원을 못 벌었을 때
+                resultTitle.innerText = "영업 실패...";
+                resultStars.innerText = "목표 금액 미달";
+            }
+            resultDesc.innerText = `총 수익: ${currentMoney}원\n목표치(1000원) 대비 훌륭해요!`;
+        }
     }
 
-    // 방향키 및 스페이스바 스크롤 방지
+    function resetGame() {
+        resultScreen.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+    }
+
+    // 키보드 스페이스 및 방향키 스크롤 방지
     window.addEventListener('keydown', function(e) {
-        if(["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(e.code) > -1) {
+        if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
             e.preventDefault();
         }
     }, false);
 
-    // 초기 랭킹 렌더링
-    renderStartRanking();
-
 </script>
+
 </body>
 </html>
