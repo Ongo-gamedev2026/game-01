@@ -130,7 +130,7 @@
         #patience-bar {
             width: 100%;
             height: 100%;
-            background-color: #e57373;
+            background-color: #66bb6a;
             transition: width 0.1s linear, background-color 0.3s;
         }
         
@@ -372,7 +372,7 @@
         </div>
         <div style="display: flex; gap: 15px;">
             <div class="status-box thick-border">
-                <span>⏱️</span> <span id="ui-time">120초</span>
+                <span>⏱️</span> <span id="ui-time">60초</span>
             </div>
             <div class="status-box thick-border" id="ui-hearts">
                 ❤️❤️❤️
@@ -442,7 +442,7 @@
         <h1>☕ 낭만 카페 영업시작</h1>
         <p>
             재료를 조합해 손님이 원하는 음료를 만드세요!<br>
-            <strong>클리어 목표:</strong> 120초 안에 1,000원 이상 벌기<br>
+            <strong>클리어 목표:</strong> 60초 안에 2,500원 이상 벌기<br>
             <strong>실패 조건:</strong> 시간 내 목표 미달 또는 손님 3명 놓치기<br>
             (마우스로 클릭해서 플레이합니다)
         </p>
@@ -464,14 +464,17 @@
        [설정값] 기획서에 명시되지 않아 임의로 정한 수치들
        ========================================= */
     const CONFIG = {
-        GAME_TIME_SEC: 120,       // 전체 게임 시간 (기획서 120초)
+        GAME_TIME_SEC: 60,        // 전체 게임 시간 (긴장감을 위해 120초 -> 60초로 단축)
         MAX_HEARTS: 3,            // 목숨 개수 (기획서 3개)
-        DRINK_PRICE: 250,         // 음료 1잔 기본 가격 (1000원을 달성하기 위해 4잔 서빙 필요)
-        PATIENCE_SEC: 20,         // 손님 한 명이 기다려주는 시간 (20초)
+        DRINK_PRICE: 250,         // 음료 1잔 기본 가격
+        TIP_BONUS: 50,            // 인내심 50% 이상일 때 주는 보너스 팁
+        LATE_PENALTY_RATIO: 0.5,  // 인내심 20% 미만일 때 깎이는 비율 (50%만 지급)
+        MIN_PATIENCE_SEC: 8,      // 참을성 없는 손님 최소 대기 시간 (8초)
+        MAX_PATIENCE_SEC: 15,     // 일반 손님 최대 대기 시간 (15초)
         MAX_INGREDIENTS: 3,       // 컵에 담을 수 있는 최대 재료 수
-        STAR1_GOAL: 1000,         // 별 1개 조건 (기획서 기준)
-        STAR2_GOAL: 2000,         // 별 2개 조건
-        STAR3_GOAL: 3000          // 별 3개 조건
+        STAR1_GOAL: 2500,         // 별 1개 클리어 조건 (1000원 -> 2500원으로 상향)
+        STAR2_GOAL: 3500,         // 별 2개 조건
+        STAR3_GOAL: 4500          // 별 3개 조건
     };
 
     /* =========================================
@@ -494,7 +497,8 @@
     
     let currentCup = []; // 현재 컵에 담긴 재료 배열
     let currentOrder = null; // 현재 손님이 주문한 레시피 객체
-    let customerTimer = 0; // 손님 인내심 게이지용 (밀리초)
+    let customerMaxTime = 15000; // 현재 손님의 최대 대기 시간 (ms)
+    let customerTimer = 0; // 손님 남은 인내심 시간 (ms)
     let patienceInterval = null;
     let gameTimerInterval = null;
     let isPlaying = false;
@@ -564,22 +568,38 @@
         // 랜덤 레시피와 얼굴 지정
         currentOrder = RECIPES[Math.floor(Math.random() * RECIPES.length)];
         customerEmoji.innerText = CUSTOMER_FACES[Math.floor(Math.random() * CUSTOMER_FACES.length)];
-        customerOrderText.innerHTML = currentOrder.requestText;
         
-        // 인내심 초기화
-        customerTimer = CONFIG.PATIENCE_SEC * 1000;
+        // 8초 ~ 15초 사이 랜덤 대기 시간 설정
+        const randomSec = Math.floor(Math.random() * (CONFIG.MAX_PATIENCE_SEC - CONFIG.MIN_PATIENCE_SEC + 1)) + CONFIG.MIN_PATIENCE_SEC;
+        customerMaxTime = randomSec * 1000;
+        customerTimer = customerMaxTime;
+
+        // 10초 이하의 참을성 없는 손님 안내 문구 추가
+        if (randomSec <= 10) {
+            customerOrderText.innerHTML = `<span style="color:#d32f2f; font-size:15px;">⚡빨리 주세요!</span><br>${currentOrder.requestText}`;
+        } else {
+            customerOrderText.innerHTML = currentOrder.requestText;
+        }
+        
+        // 인내심 게이지 초기화
         patienceBar.style.width = '100%';
-        patienceBar.style.backgroundColor = '#e57373'; // 초기 붉은색
+        patienceBar.style.backgroundColor = '#66bb6a';
 
         clearInterval(patienceInterval);
         patienceInterval = setInterval(() => {
             if (!isPlaying) return;
             customerTimer -= 50; // 50ms 마다 갱신하여 부드럽게 줄어들게 함
-            let percent = (customerTimer / (CONFIG.PATIENCE_SEC * 1000)) * 100;
+            let percent = (customerTimer / customerMaxTime) * 100;
             patienceBar.style.width = `${percent}%`;
 
-            // 시간이 얼마 안 남으면 주황색 경고
-            if (percent < 30) patienceBar.style.backgroundColor = '#ff9800';
+            // 남은 인내심 비율에 따라 초록 -> 노랑(주황) -> 빨강으로 색상 변경
+            if (percent >= 50) {
+                patienceBar.style.backgroundColor = '#66bb6a'; // 초록색 (여유)
+            } else if (percent >= 20) {
+                patienceBar.style.backgroundColor = '#ffa726'; // 주황/노란색 (주의)
+            } else {
+                patienceBar.style.backgroundColor = '#ef5350'; // 빨간색 (위험)
+            }
 
             if (customerTimer <= 0) {
                 missCustomer();
@@ -647,7 +667,7 @@
     }
 
     /* =========================================
-       서빙 및 버리기 로직
+       서빙 및 버리기 로직 (남은 인내심에 따른 만족도/수입 차등)
        ========================================= */
     function serveDrink() {
         if (!isPlaying || currentCup.length === 0 || !currentOrder) return;
@@ -657,19 +677,35 @@
         let orderSorted = [...currentOrder.ingredients].sort().join(',');
 
         if (cupSorted === orderSorted) {
-            // 정답!
+            // 정답! 남은 인내심 비율 계산 (0% ~ 100%)
             clearInterval(patienceInterval);
-            currentMoney += CONFIG.DRINK_PRICE;
+            const patiencePercent = (customerTimer / customerMaxTime) * 100;
+            let earnedMoney = CONFIG.DRINK_PRICE;
+
+            if (patiencePercent >= 50) {
+                // 50% 이상 남음: 대만족 (기본금 + 보너스 팁)
+                earnedMoney += CONFIG.TIP_BONUS;
+                customerEmoji.innerText = '😍';
+                customerOrderText.innerHTML = `최고예요! (+${earnedMoney}원)<br>팁까지 드릴게요!`;
+            } else if (patiencePercent >= 20) {
+                // 20% ~ 50% 남음: 보통 (기본금만)
+                customerEmoji.innerText = '🙂';
+                customerOrderText.innerHTML = `감사합니다! (+${earnedMoney}원)<br>잘 마실게요.`;
+            } else {
+                // 20% 미만 남음: 불만족 (금액 절반으로 삭감)
+                earnedMoney = Math.floor(CONFIG.DRINK_PRICE * CONFIG.LATE_PENALTY_RATIO);
+                customerEmoji.innerText = '😤';
+                customerOrderText.innerHTML = `너무 늦었어요! (+${earnedMoney}원)<br>반값만 낼게요.`;
+            }
+
+            currentMoney += earnedMoney;
             updateUI();
-            
-            customerEmoji.innerText = '😍';
-            customerOrderText.innerHTML = "완벽해요!<br>고마워요!";
             
             throwAway(); // 컵 비우기
             
             setTimeout(() => {
                 if(isPlaying) spawnCustomer();
-            }, 800);
+            }, 900);
         } else {
             // 오답! (기획서에 오답 페널티가 없으므로 컵만 흔들림 효과)
             document.getElementById('cup').classList.add('shake-anim');
@@ -711,11 +747,11 @@
                 resultTitle.innerText = "무난한 하루!";
                 resultStars.innerText = "⭐";
             } else {
-                // 실패 조건 1: 1000원을 못 벌었을 때
+                // 실패 조건 1: 2500원을 못 벌었을 때
                 resultTitle.innerText = "영업 실패...";
                 resultStars.innerText = "목표 금액 미달";
             }
-            resultDesc.innerText = `총 수익: ${currentMoney}원\n목표치(1000원) 대비 훌륭해요!`;
+            resultDesc.innerText = `총 수익: ${currentMoney}원\n목표치(2,500원)를 확인해 보세요!`;
         }
     }
 
