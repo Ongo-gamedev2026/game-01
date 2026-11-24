@@ -1,773 +1,2425 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>귀여운 카페 경영 게임 - 스테이지 1</title>
-    <style>
-        /* 기본 설정 및 폰트 */
-        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
-        
-        :root {
-            --bg-color: #f4ead5;
-            --border-color: #5c3a21;
-            --btn-green: #9ccb96;
-            --btn-red: #ea8d8a;
-            --cup-color: #8ebbd0;
-            --text-color: #5c3a21;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>귀여운 카페 경영 게임 - 스테이지 1 (낭만 카페)</title>
+  <!-- Google Web Fonts: Jua -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-cream: #fbf6ee;
+      --cafe-beige: #f4ead5;
+      --wood-dark: #5c3a21;
+      --wood-light: #8d5b36;
+      --wood-border: #442915;
+      --coffee-brown: #3e2723;
+      --latte-cream: #d7ccc8;
+      --milk-white: #fffdf5;
+      --green-gauge: #66bb6a;
+      --orange-gauge: #ffa726;
+      --red-gauge: #ef5350;
+      --btn-serve: #4caf50;
+      --btn-serve-hover: #43a047;
+      --btn-trash: #e57373;
+      --btn-trash-hover: #ef5350;
+      --gold-coin: #fbc02d;
+    }
 
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #333;
-            font-family: 'Jua', sans-serif;
-            user-select: none;
-            overflow: hidden; /* 스크롤 방지 */
-        }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* 게임 화면 컨테이너 (고정 해상도) */
-        #game-container {
-            width: 800px;
-            height: 600px;
-            background-color: var(--bg-color);
-            position: relative;
-            border-radius: 20px;
-            border: 6px solid var(--border-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            overflow: hidden;
-            color: var(--text-color);
-        }
+    body {
+      background: #3e2e28;
+      background-image: 
+        radial-gradient(#4e3933 15%, transparent 16%), 
+        radial-gradient(#4e3933 15%, transparent 16%);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      font-family: 'Jua', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      color: #333;
+      overflow: hidden;
+    }
 
-        /* 공통 테두리 스타일 */
-        .thick-border {
-            border: 4px solid var(--border-color);
-            border-radius: 15px;
-            background-color: white;
-        }
+    /* 게임 캔버스 컨테이너 (800x600 비율 유지) */
+    #game-container {
+      width: 800px;
+      height: 600px;
+      position: relative;
+      background-color: var(--cafe-beige);
+      border-radius: 24px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 0 10px var(--wood-dark);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* 상단 UI (돈, 시간, 목숨) */
-        #top-bar {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 30px;
-            font-size: 24px;
-        }
+    /* 상단 BGM & SFX 컨트롤러 */
+    .audio-toggle-bar {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      z-index: 50;
+      display: flex;
+      gap: 6px;
+    }
 
-        .status-box {
-            padding: 5px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
-        }
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.85);
+      border: 2px solid var(--wood-dark);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: transform 0.1s, background-color 0.2s;
+    }
+    .icon-btn:hover {
+      transform: scale(1.1);
+      background: #fff;
+    }
 
-        /* 손님 영역 */
-        #customer-area {
-            position: absolute;
-            left: 50px;
-            top: 130px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 200px;
-        }
+    /* ============================================================
+       화면 1: 시작 화면 & 게임 오버 화면 (모달 스타일)
+       ============================================================ */
+    .screen-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(44, 28, 17, 0.88);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.3s ease;
+    }
 
-        #speech-bubble {
-            width: 180px;
-            padding: 15px;
-            text-align: center;
-            font-size: 20px;
-            position: relative;
-            margin-bottom: 20px;
-            border-radius: 20px;
-        }
-        
-        #speech-bubble::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 15px 10px 0;
-            border-style: solid;
-            border-color: var(--border-color) transparent transparent transparent;
-        }
-        #speech-bubble::before {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 12px 8px 0;
-            border-style: solid;
-            border-color: white transparent transparent transparent;
-            z-index: 1;
-        }
+    .modal-box {
+      background: var(--cafe-beige);
+      width: 580px;
+      padding: 30px 40px;
+      border-radius: 24px;
+      border: 8px solid var(--wood-dark);
+      text-align: center;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+    }
 
-        #customer-emoji {
-            font-size: 80px;
-            line-height: 1;
-            margin-bottom: 20px;
-            text-shadow: 0 4px 0 rgba(0,0,0,0.2);
-        }
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
 
-        /* 인내심 게이지 */
-        #patience-bar-container {
-            width: 100%;
-            height: 20px;
-            background-color: #d1d5db;
-            border: 4px solid var(--border-color);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 5px;
-        }
+    .modal-title {
+      font-size: 32px;
+      color: var(--wood-dark);
+      margin-bottom: 6px;
+      text-shadow: 1px 1px 0px #fff;
+    }
 
-        #patience-bar {
-            width: 100%;
-            height: 100%;
-            background-color: #66bb6a;
-            transition: width 0.1s linear, background-color 0.3s;
-        }
-        
-        .patience-label {
-            background-color: white;
-            padding: 2px 15px;
-            border-radius: 10px;
-            border: 3px solid var(--border-color);
-            font-size: 14px;
-        }
+    .modal-subtitle {
+      font-size: 19px;
+      color: var(--wood-light);
+      margin-bottom: 20px;
+    }
 
-        /* 중앙 컵 영역 */
-        #cup-area {
-            position: absolute;
-            left: 300px;
-            top: 200px;
-            width: 160px;
-            height: 200px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    .guide-card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 22px;
+      text-align: left;
+    }
 
-        #cup {
-            width: 120px;
-            height: 140px;
-            border: 6px solid var(--cup-color);
-            border-top: none;
-            border-radius: 0 0 20px 20px;
-            position: relative;
-            background-color: rgba(255,255,255,0.5);
-            z-index: 2;
-        }
+    .guide-card {
+      background: #fffdf8;
+      border: 2px solid #deb887;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 15px;
+      line-height: 1.4;
+    }
 
-        /* 컵 손잡이 */
-        #cup::after {
-            content: '';
-            position: absolute;
-            right: -36px;
-            top: 20px;
-            width: 30px;
-            height: 60px;
-            border: 6px solid var(--cup-color);
-            border-left: none;
-            border-radius: 0 30px 30px 0;
-        }
+    .guide-card h4 {
+      font-size: 16px;
+      color: var(--wood-dark);
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
-        #liquid {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 0%;
-            background-color: transparent;
-            border-radius: 0 0 14px 14px;
-            transition: height 0.3s ease, background-color 0.4s ease;
-            z-index: 1;
-            display: flex;
-            flex-wrap: wrap;
-            align-content: flex-end;
-            justify-content: center;
-            overflow: hidden;
-        }
+    .stars-reward-box {
+      background: #faeed7;
+      border: 2px dashed var(--wood-light);
+      border-radius: 12px;
+      padding: 8px 12px;
+      margin-bottom: 20px;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-around;
+      color: var(--wood-dark);
+    }
 
-        .ice-cube {
-            font-size: 24px;
-            margin: 2px;
-            animation: float 2s infinite ease-in-out alternate;
-        }
+    .big-action-btn {
+      background: linear-gradient(180deg, #ff9800 0%, #f57c00 100%);
+      color: #fff;
+      font-family: 'Jua', sans-serif;
+      font-size: 24px;
+      padding: 12px 42px;
+      border: 3px solid #b26a00;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #945300, 0 10px 15px rgba(0,0,0,0.3);
+      transition: all 0.1s;
+    }
+    .big-action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 #945300, 0 12px 18px rgba(0,0,0,0.3);
+    }
+    .big-action-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #945300;
+    }
 
-        @keyframes float {
-            from { transform: translateY(0); }
-            to { transform: translateY(-5px); }
-        }
+    /* ============================================================
+       메인 플레이 화면 UI
+       ============================================================ */
+    /* 1. 상단 바 */
+    #top-bar {
+      height: 72px;
+      background: var(--wood-dark);
+      border-bottom: 5px solid var(--wood-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      color: #fff;
+      z-index: 20;
+    }
 
-        #coaster {
-            width: 140px;
-            height: 20px;
-            background-color: #a06b49;
-            border: 4px solid var(--border-color);
-            border-radius: 50%;
-            margin-top: -10px;
-            z-index: 1;
-        }
+    .status-badge {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      letter-spacing: 0.5px;
+    }
 
-        /* 우측 레시피 및 재료 영역 */
-        #right-area {
-            position: absolute;
-            right: 30px;
-            top: 80px;
-            width: 220px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+    .status-badge .value {
+      font-size: 23px;
+      color: #ffeb3b;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
 
-        #recipe-board {
-            padding: 15px;
-            background-color: white;
-            font-size: 16px;
-        }
-        
-        #recipe-board h3 {
-            margin: 0 0 10px 0;
-            text-align: center;
-            color: #d86c6c;
-        }
+    .timer-warning {
+      animation: pulseAlert 0.8s infinite alternate;
+      color: #ff5252 !important;
+    }
 
-        .recipe-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px dashed #ccc;
-            padding: 5px 0;
-        }
-        .recipe-item:last-child {
-            border-bottom: none;
-        }
+    @keyframes pulseAlert {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px red); }
+      100% { transform: scale(1.15); filter: drop-shadow(0 0 8px red); }
+    }
 
-        .ingredient-btn {
-            padding: 10px;
-            font-size: 20px;
-            font-family: 'Jua', sans-serif;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 5px 0 var(--border-color);
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
+    .hearts-display {
+      font-size: 22px;
+      letter-spacing: 3px;
+    }
 
-        .ingredient-btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 0 0 var(--border-color);
-        }
+    /* 2. 메인 컨텐츠 영역 (좌측, 중앙, 우측) */
+    #main-content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 240px 1fr 240px;
+      background: radial-gradient(circle at center top, #fff5e6 0%, #faeed7 100%);
+      position: relative;
+      overflow: hidden;
+    }
 
-        /* 하단 테이블과 버튼 */
-        #table-line {
-            position: absolute;
-            bottom: 110px;
-            left: 20px;
-            width: 760px;
-            height: 10px;
-            background-color: #8b5a33;
-            border: 3px solid var(--border-color);
-            border-radius: 5px;
-        }
+    /* 카페 뒷배경 창문 & 선반 장식 */
+    .cafe-wall-decor {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .wall-clock {
+      width: 44px;
+      height: 44px;
+      border: 3px solid var(--wood-dark);
+      border-radius: 50%;
+      position: relative;
+      background: #fff;
+    }
+    .wall-clock::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2px;
+      height: 15px;
+      background: #000;
+      transform-origin: top center;
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+    .wall-frame {
+      border: 3px solid var(--wood-dark);
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #fff;
+      font-size: 13px;
+      color: var(--wood-dark);
+    }
 
-        #bottom-buttons {
-            position: absolute;
-            bottom: 25px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-        }
+    /* --- 좌측 영역: 손님 및 주문 --- */
+    #left-customer-zone {
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      position: relative;
+      border-right: 3px dashed #e3cfba;
+      z-index: 10;
+    }
 
-        .action-btn {
-            width: 320px;
-            padding: 15px;
-            font-size: 28px;
-            font-family: 'Jua', sans-serif;
-            color: var(--text-color);
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 6px 0 var(--border-color);
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-        
-        .action-btn:active {
-            transform: translateY(6px);
-            box-shadow: 0 0 0 var(--border-color);
-        }
+    .customer-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
 
-        #btn-serve { background-color: var(--btn-green); }
-        #btn-trash { background-color: var(--btn-red); }
+    .customer-container.entering {
+      transform: translateX(-80px);
+      opacity: 0;
+    }
 
-        /* 화면 오버레이 (시작, 종료) */
-        .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(244, 234, 213, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
+    .customer-container.leaving {
+      transform: translateX(-120px);
+      opacity: 0;
+    }
 
-        .overlay h1 {
-            font-size: 48px;
-            margin-bottom: 10px;
-            color: var(--text-color);
-            text-shadow: 2px 2px 0 white;
-        }
-        
-        .overlay p {
-            font-size: 20px;
-            text-align: center;
-            line-height: 1.5;
-            margin-bottom: 30px;
-        }
+    /* 주문 말풍선 */
+    .order-bubble {
+      background: #ffffff;
+      border: 3px solid var(--wood-dark);
+      border-radius: 18px;
+      padding: 10px 14px;
+      width: 95%;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      position: relative;
+      margin-bottom: 12px;
+      text-align: center;
+    }
 
-        .start-btn {
-            padding: 15px 40px;
-            font-size: 28px;
-            background-color: var(--btn-green);
-            color: var(--text-color);
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 6px 0 var(--border-color);
-            font-family: 'Jua', sans-serif;
-        }
+    .order-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 10px 10px 0;
+      border-style: solid;
+      border-color: #ffffff transparent;
+      display: block;
+      width: 0;
+    }
 
-        .hidden { display: none !important; }
-        
-        /* 이펙트 애니메이션 */
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-        }
-        .shake-anim { animation: shake 0.3s ease-in-out; }
+    .order-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 13px 13px 0;
+      border-style: solid;
+      border-color: var(--wood-dark) transparent;
+      display: block;
+      width: 0;
+    }
 
-    </style>
+    .urgent-badge {
+      display: inline-block;
+      background: #ff5252;
+      color: #fff;
+      font-size: 12px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      animation: blinkBadge 0.6s infinite alternate;
+    }
+
+    @keyframes blinkBadge {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0.7; transform: scale(0.96); }
+    }
+
+    .order-drink-title {
+      font-size: 19px;
+      color: var(--wood-dark);
+      margin-top: 2px;
+      font-weight: bold;
+    }
+
+    .order-speech {
+      font-size: 14px;
+      color: #6d4c41;
+      margin-top: 2px;
+    }
+
+    /* 인내심 게이지 바 */
+    .patience-wrapper {
+      width: 90%;
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .patience-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--wood-dark);
+      font-weight: bold;
+    }
+
+    .patience-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: #d7ccc8;
+      border: 2px solid var(--wood-dark);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .patience-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--green-gauge);
+      border-radius: 8px;
+      transition: width 0.1s linear, background-color 0.3s ease;
+    }
+
+    /* 손님 캐릭터 */
+    .customer-avatar-box {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin-top: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .customer-avatar {
+      font-size: 80px;
+      line-height: 1;
+      filter: drop-shadow(0 6px 4px rgba(0,0,0,0.15));
+      transition: transform 0.2s;
+    }
+
+    .customer-emotion-indicator {
+      position: absolute;
+      top: -6px;
+      right: 0px;
+      font-size: 28px;
+      animation: floatMood 1.2s infinite ease-in-out;
+    }
+
+    @keyframes floatMood {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .customer-nameplate {
+      background: var(--wood-dark);
+      color: #fff;
+      font-size: 13px;
+      padding: 3px 12px;
+      border-radius: 12px;
+      margin-top: 6px;
+    }
+
+    /* --- 중앙 영역: 조제 컵 & 바 카운터 --- */
+    #center-prep-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 10px;
+    }
+
+    .prep-status-label {
+      background: rgba(255, 255, 255, 0.7);
+      border: 2px solid #bcaaa4;
+      padding: 4px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      color: var(--wood-dark);
+      margin-bottom: 8px;
+    }
+
+    /* 유리잔 및 음료 그래픽 */
+    .cup-stand {
+      position: relative;
+      width: 170px;
+      height: 230px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    /* 투명 유리컵 */
+    .glass-cup {
+      position: relative;
+      width: 125px;
+      height: 175px;
+      border-left: 6px solid rgba(255, 255, 255, 0.85);
+      border-right: 6px solid rgba(255, 255, 255, 0.85);
+      border-bottom: 10px solid rgba(255, 255, 255, 0.95);
+      border-top: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 0 0 24px 24px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.25) 100%);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12), inset 0 0 10px rgba(255,255,255,0.5);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      z-index: 5;
+      transition: transform 0.15s;
+    }
+
+    /* 컵 하이라이트 반사광 */
+    .glass-cup::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 8px;
+      width: 10px;
+      height: 70%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.1));
+      border-radius: 10px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* 오답 서빙 시 흔들림 애니메이션 */
+    .shake-cup {
+      animation: cupShake 0.45s ease-in-out !important;
+    }
+
+    @keyframes cupShake {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-12px) rotate(-6deg); }
+      40% { transform: translateX(12px) rotate(6deg); }
+      60% { transform: translateX(-8px) rotate(-4deg); }
+      80% { transform: translateX(8px) rotate(4deg); }
+    }
+
+    /* 액체 레이어 */
+    .liquid-fill {
+      width: 100%;
+      height: 0%;
+      background: transparent;
+      transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* 액체 표면 거품/파동 효과 */
+    .liquid-surface {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translateY(-4px);
+    }
+
+    /* 떠다니는 얼음 큐브 */
+    .ice-cubes-container {
+      position: absolute;
+      top: 6px;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-items: flex-start;
+      padding: 4px;
+      gap: 3px;
+    }
+
+    .ice-cube-item {
+      font-size: 24px;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+      animation: floatIce 2s infinite ease-in-out alternate;
+    }
+    .ice-cube-item:nth-child(2) {
+      animation-delay: 0.5s;
+    }
+    .ice-cube-item:nth-child(3) {
+      animation-delay: 1s;
+    }
+
+    @keyframes floatIce {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(5px) rotate(8deg); }
+    }
+
+    /* 우드 코스터 */
+    .coaster {
+      width: 155px;
+      height: 16px;
+      background: #795548;
+      border: 3px solid var(--wood-dark);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+      margin-top: -3px;
+      z-index: 4;
+    }
+
+    /* 현재 컵에 담긴 재료 인디케이터 태그 */
+    .current-ingredients-box {
+      margin-top: 14px;
+      display: flex;
+      gap: 6px;
+      min-height: 32px;
+      align-items: center;
+    }
+
+    .ingredient-tag {
+      background: #ffffff;
+      border: 2px solid var(--wood-dark);
+      border-radius: 12px;
+      padding: 3px 8px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      animation: tagPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes tagPop {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .tag-empty {
+      color: #9e9e9e;
+      font-size: 13px;
+    }
+
+    /* --- 우측 영역: 레시피 안내 및 재료 추가 버튼 --- */
+    #right-recipe-zone {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-left: 3px dashed #e3cfba;
+      z-index: 10;
+    }
+
+    .recipe-board {
+      background: #fffdf8;
+      border: 3px solid var(--wood-dark);
+      border-radius: 16px;
+      padding: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    }
+
+    .recipe-board-title {
+      font-size: 16px;
+      color: var(--wood-dark);
+      border-bottom: 2px dashed #bcaaa4;
+      padding-bottom: 5px;
+      margin-bottom: 8px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .recipe-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 6px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      font-size: 13px;
+      background: #fbf5eb;
+      transition: background 0.15s;
+    }
+
+    .recipe-item.active-target {
+      background: #fff176;
+      border: 1px solid #fbc02d;
+      font-weight: bold;
+    }
+
+    .recipe-name {
+      color: var(--wood-dark);
+    }
+    .recipe-formula {
+      color: #5d4037;
+      font-size: 12px;
+    }
+
+    /* 재료 추가 버튼 그룹 */
+    .ingredients-button-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .ing-btn {
+      background: #ffffff;
+      border: 3px solid var(--wood-light);
+      border-radius: 14px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Jua', sans-serif;
+      font-size: 16px;
+      color: var(--wood-dark);
+      cursor: pointer;
+      box-shadow: 0 4px 0 #795548;
+      transition: all 0.08s;
+    }
+
+    .ing-btn:hover {
+      background: #fff8e1;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #795548;
+    }
+
+    .ing-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #795548;
+    }
+
+    .ing-btn .btn-icon {
+      font-size: 22px;
+    }
+
+    .ing-btn .btn-desc {
+      font-size: 11px;
+      color: #8d6e63;
+      margin-left: auto;
+    }
+
+    /* ============================================================
+       하단 바 카운터 테이블 & 액션 버튼 (서빙, 버리기)
+       ============================================================ */
+    #bottom-table-bar {
+      height: 84px;
+      background: linear-gradient(to bottom, #8d5b36 0%, #5c3a21 100%);
+      border-top: 6px solid #442915;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      padding: 0 20px;
+      box-shadow: inset 0 6px 10px rgba(0,0,0,0.3);
+      z-index: 20;
+    }
+
+    .action-btn {
+      font-family: 'Jua', sans-serif;
+      font-size: 20px;
+      padding: 10px 32px;
+      border-radius: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.1s;
+      border: 3px solid rgba(0,0,0,0.25);
+    }
+
+    .btn-serve {
+      background: linear-gradient(180deg, #66bb6a 0%, #43a047 100%);
+      color: #fff;
+      box-shadow: 0 5px 0 #2e7d32, 0 8px 12px rgba(0,0,0,0.3);
+    }
+    .btn-serve:hover {
+      background: linear-gradient(180deg, #81c784 0%, #4caf50 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 7px 0 #2e7d32, 0 10px 15px rgba(0,0,0,0.3);
+    }
+    .btn-serve:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #2e7d32;
+    }
+
+    .btn-trash {
+      background: linear-gradient(180deg, #ef5350 0%, #e53935 100%);
+      color: #fff;
+      box-shadow: 0 5px 0 #c62828, 0 8px 12px rgba(0,0,0,0.3);
+    }
+    .btn-trash:hover {
+      background: linear-gradient(180deg, #e57373 0%, #ef5350 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 7px 0 #c62828, 0 10px 15px rgba(0,0,0,0.3);
+    }
+    .btn-trash:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #c62828;
+    }
+
+    /* 플로팅 알림 텍스트 / 토스트 */
+    .floating-feedback {
+      position: absolute;
+      pointer-events: none;
+      font-size: 22px;
+      font-weight: bold;
+      z-index: 90;
+      animation: floatUpFade 1.2s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    }
+
+    @keyframes floatUpFade {
+      0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+      20% { opacity: 1; transform: translate(-50%, -20px) scale(1.15); }
+      80% { opacity: 1; transform: translate(-50%, -45px) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -65px) scale(0.9); }
+    }
+
+    /* 별점 렌더링 */
+    .star-rating-box {
+      font-size: 42px;
+      letter-spacing: 6px;
+      margin: 12px 0;
+      color: #e0e0e0;
+    }
+    .star-rating-box .active-star {
+      color: #ffc107;
+      text-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* 결과 통계 표 */
+    .result-stats-table {
+      width: 100%;
+      background: #fff;
+      border: 2px solid var(--wood-light);
+      border-radius: 14px;
+      margin-bottom: 20px;
+      padding: 12px;
+      font-size: 15px;
+    }
+
+    .result-stats-table .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 10px;
+      border-bottom: 1px dashed #efebe9;
+    }
+    .result-stats-table .row:last-child {
+      border-bottom: none;
+      font-weight: bold;
+      color: var(--wood-dark);
+      font-size: 17px;
+    }
+
+    .customer-char-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ============================================================
+       반응형 & 모바일 최적화 레이아웃
+       ============================================================ */
+
+    /* 1. 스마트폰 및 태블릿 세로 모드 (Portrait, 폭 768px 이하) */
+    @media (max-width: 768px) and (orientation: portrait), (max-width: 600px) {
+      body {
+        padding: 0;
+        align-items: stretch;
+      }
+
+      #game-container {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+      }
+
+      /* 상단 바 컴팩트화 */
+      #top-bar {
+        height: 54px;
+        padding: 0 10px;
+        border-bottom-width: 4px;
+      }
+
+      .status-badge {
+        font-size: 14px;
+        padding: 4px 8px;
+        gap: 4px;
+        border-radius: 12px;
+      }
+
+      .status-badge .value {
+        font-size: 15px;
+      }
+
+      .hearts-display {
+        font-size: 15px;
+        letter-spacing: 1px;
+      }
+
+      .audio-toggle-bar {
+        top: 8px;
+        right: 8px;
+        gap: 4px;
+      }
+
+      .icon-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+      }
+
+      /* 메인 컨텐츠 세로 플렉스 전환 */
+      #main-content {
+        display: flex;
+        flex-direction: column;
+        grid-template-columns: none;
+        padding: 6px 12px;
+        justify-content: space-between;
+        overflow: hidden;
+      }
+
+      .cafe-wall-decor {
+        display: none; /* 모바일 공간 확보 */
+      }
+
+      /* 좌측 손님존 -> 상단 가로 배치 */
+      #left-customer-zone {
+        border-right: none;
+        border-bottom: 2px dashed #e3cfba;
+        padding: 4px 0 8px 0;
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .customer-container {
+        flex-direction: row !important;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+      }
+
+      .customer-char-unit {
+        min-width: 68px;
+      }
+
+      .customer-avatar-box {
+        width: 62px;
+        height: 62px;
+        margin-top: 0;
+      }
+
+      .customer-avatar {
+        font-size: 46px;
+      }
+
+      .customer-emotion-indicator {
+        font-size: 20px;
+        top: -4px;
+        right: -2px;
+      }
+
+      .customer-nameplate {
+        font-size: 11px;
+        padding: 2px 6px;
+        margin-top: 2px;
+      }
+
+      /* 주문 말풍선 컴팩트화 */
+      .order-bubble {
+        flex: 1;
+        width: auto;
+        padding: 6px 10px;
+        margin-bottom: 0;
+      }
+
+      .order-bubble::before,
+      .order-bubble::after {
+        display: none; /* 모바일에서는 깔끔한 카드 스타일 */
+      }
+
+      .urgent-badge {
+        font-size: 11px;
+        padding: 1px 6px;
+        margin-bottom: 2px;
+      }
+
+      .order-drink-title {
+        font-size: 17px;
+      }
+
+      .order-speech {
+        font-size: 12px;
+        margin-top: 1px;
+      }
+
+      .patience-wrapper {
+        width: 100%;
+        margin-top: 3px;
+        gap: 2px;
+      }
+
+      .patience-label {
+        font-size: 11px;
+      }
+
+      .patience-bar-bg {
+        height: 10px;
+      }
+
+      /* 중앙 조제 컵 영역 */
+      #center-prep-zone {
+        flex: 1;
+        padding: 4px 0;
+        justify-content: center;
+        min-height: 0;
+      }
+
+      .prep-status-label {
+        font-size: 12px;
+        padding: 2px 10px;
+        margin-bottom: 4px;
+      }
+
+      .cup-stand {
+        width: 120px;
+        height: 145px;
+      }
+
+      .glass-cup {
+        width: 95px;
+        height: 135px;
+        border-left-width: 5px;
+        border-right-width: 5px;
+        border-bottom-width: 8px;
+        border-radius: 0 0 20px 20px;
+      }
+
+      .ice-cube-item {
+        font-size: 19px;
+      }
+
+      .coaster {
+        width: 118px;
+        height: 12px;
+      }
+
+      .current-ingredients-box {
+        margin-top: 6px;
+        min-height: 24px;
+        gap: 4px;
+      }
+
+      .ingredient-tag {
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 8px;
+      }
+
+      /* 우측 영역 -> 하단 레시피 바 및 가로 3버튼 */
+      #right-recipe-zone {
+        border-left: none;
+        padding: 4px 0;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .recipe-board {
+        padding: 4px 8px;
+        border-radius: 12px;
+      }
+
+      .recipe-board-title {
+        font-size: 12px;
+        padding-bottom: 2px;
+        margin-bottom: 3px;
+      }
+
+      .recipe-board-list {
+        display: flex;
+        gap: 4px;
+      }
+
+      .recipe-item {
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3px 2px;
+        font-size: 11px;
+        margin-bottom: 0;
+        border-radius: 6px;
+      }
+
+      .recipe-name {
+        font-size: 11px;
+      }
+
+      .recipe-formula {
+        font-size: 9px;
+      }
+
+      /* 3가지 재료 버튼: 가로 3열 큼직한 버튼 그리드 */
+      .ingredients-button-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .ing-btn {
+        padding: 8px 4px;
+        flex-direction: column;
+        gap: 2px;
+        justify-content: center;
+        text-align: center;
+        font-size: 14px;
+        border-radius: 12px;
+      }
+
+      .ing-btn .btn-icon {
+        font-size: 20px;
+      }
+
+      .ing-btn .btn-desc {
+        display: none;
+      }
+
+      /* 하단 테이블 바 (버리기, 서빙하기) */
+      #bottom-table-bar {
+        height: 64px;
+        padding: 8px 12px;
+        gap: 10px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        border-top-width: 4px;
+      }
+
+      .action-btn {
+        font-size: 17px;
+        padding: 10px 0;
+        border-radius: 28px;
+        justify-content: center;
+      }
+
+      .btn-trash {
+        flex: 1;
+      }
+
+      .btn-serve {
+        flex: 1.5;
+        font-size: 18px;
+      }
+
+      /* 모바일 모달 팝업 최적화 */
+      .modal-box {
+        width: 92%;
+        max-width: 400px;
+        padding: 20px 14px;
+        border-width: 5px;
+        border-radius: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-title {
+        font-size: 22px;
+      }
+
+      .modal-subtitle {
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
+
+      .guide-card-grid {
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .guide-card {
+        padding: 8px 10px;
+        font-size: 12px;
+        border-radius: 10px;
+      }
+
+      .guide-card h4 {
+        font-size: 13px;
+        margin-bottom: 3px;
+      }
+
+      .stars-reward-box {
+        font-size: 12px;
+        padding: 6px;
+        margin-bottom: 12px;
+      }
+
+      .big-action-btn {
+        font-size: 18px;
+        padding: 10px 24px;
+        border-width: 2px;
+      }
+
+      .result-stats-table {
+        font-size: 13px;
+        padding: 8px;
+        margin-bottom: 12px;
+      }
+
+      .result-stats-table .row {
+        padding: 4px 6px;
+      }
+
+      .result-stats-table .row:last-child {
+        font-size: 15px;
+      }
+    }
+
+    /* 2. 모바일 가로 모드 (Landscape, 높이 500px 이하) */
+    @media (max-height: 500px) and (orientation: landscape) {
+      body {
+        padding: 0;
+      }
+
+      #game-container {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        border-radius: 0;
+        border: none;
+      }
+
+      #top-bar {
+        height: 42px;
+        padding: 0 12px;
+      }
+
+      .status-badge {
+        font-size: 13px;
+        padding: 2px 8px;
+      }
+
+      .status-badge .value {
+        font-size: 14px;
+      }
+
+      #main-content {
+        grid-template-columns: 190px 1fr 190px;
+        padding: 4px;
+      }
+
+      .customer-avatar-box {
+        width: 65px;
+        height: 65px;
+      }
+
+      .customer-avatar {
+        font-size: 50px;
+      }
+
+      .order-bubble {
+        padding: 5px 8px;
+        margin-bottom: 4px;
+      }
+
+      .cup-stand {
+        height: 125px;
+      }
+
+      .glass-cup {
+        width: 85px;
+        height: 115px;
+      }
+
+      .coaster {
+        width: 105px;
+        height: 10px;
+      }
+
+      .ingredients-button-grid {
+        gap: 4px;
+      }
+
+      .ing-btn {
+        padding: 5px 8px;
+        font-size: 13px;
+      }
+
+      #bottom-table-bar {
+        height: 50px;
+        padding: 4px 10px;
+        gap: 16px;
+      }
+
+      .action-btn {
+        font-size: 15px;
+        padding: 6px 20px;
+      }
+
+      .modal-box {
+        padding: 14px 20px;
+        max-height: 94vh;
+        overflow-y: auto;
+      }
+      .modal-title { font-size: 20px; }
+      .modal-subtitle { font-size: 12px; margin-bottom: 8px; }
+      .guide-card-grid { margin-bottom: 8px; }
+      .big-action-btn { font-size: 16px; padding: 6px 18px; }
+    }
+
+    /* 3. 일반 태블릿 및 데스크톱 스케일 다운 (800~1024px) */
+    @media (min-width: 769px) and (max-width: 860px), (min-height: 501px) and (max-height: 650px) {
+      #game-container {
+        transform-origin: center center;
+        transform: scale(0.9);
+      }
+    }
+  </style>
 </head>
 <body>
 
-<div id="game-container">
+  <!-- 전체 게임 화면 박스 (800x600) -->
+  <div id="game-container">
     
-    <!-- 상단 상태바 -->
-    <div id="top-bar">
-        <div class="status-box thick-border">
-            <span>💰</span> <span id="ui-money">0원</span>
-        </div>
-        <div style="display: flex; gap: 15px;">
-            <div class="status-box thick-border">
-                <span>⏱️</span> <span id="ui-time">60초</span>
+    <!-- 오디오 컨트롤러 (BGM, SFX) -->
+    <div class="audio-toggle-bar">
+      <button id="btn-toggle-bgm" class="icon-btn" title="배경음악 ON/OFF">🎵</button>
+      <button id="btn-toggle-sfx" class="icon-btn" title="효과음 ON/OFF">🔊</button>
+    </div>
+
+    <!-- 1. 상단 상태 바 -->
+    <header id="top-bar">
+      <div class="status-badge">
+        <span>💰 수익:</span>
+        <span id="display-money" class="value">0원</span>
+      </div>
+      <div class="status-badge">
+        <span>⏱️ 남은 시간:</span>
+        <span id="display-timer" class="value">60초</span>
+      </div>
+      <div class="status-badge">
+        <span>손님 만족도:</span>
+        <span id="display-hearts" class="hearts-display">❤️❤️❤️</span>
+      </div>
+    </header>
+
+    <!-- 2. 메인 게임 플레이 존 -->
+    <main id="main-content">
+      <!-- 배경 장식 -->
+      <div class="cafe-wall-decor">
+        <div class="wall-clock"></div>
+        <div class="wall-frame">☕ 낭만 카페 1호점</div>
+      </div>
+
+      <!-- [좌측] 손님 및 주문 정보 -->
+      <section id="left-customer-zone">
+        <div id="customer-wrapper" class="customer-container">
+          <!-- 손님 아바타 & 감정 (모바일에서 좌측/상단 배치) -->
+          <div class="customer-char-unit">
+            <div class="customer-avatar-box">
+              <div id="customer-avatar" class="customer-avatar">🐻</div>
+              <div id="customer-emotion" class="customer-emotion-indicator">✨</div>
             </div>
-            <div class="status-box thick-border" id="ui-hearts">
-                ❤️❤️❤️
+            <div id="customer-name" class="customer-nameplate">단골 곰돌이</div>
+          </div>
+
+          <!-- 말풍선 (모바일에서 우측 배치) -->
+          <div class="order-bubble">
+            <div id="urgent-badge" class="urgent-badge" style="display: none;">⚡ 빨리 주세요!</div>
+            <div id="customer-order-drink" class="order-drink-title">카페라떼</div>
+            <div id="customer-speech" class="order-speech">"부드러운 라떼 부탁해요!"</div>
+            
+            <!-- 인내심 게이지 -->
+            <div class="patience-wrapper">
+              <div class="patience-label">
+                <span>인내심</span>
+                <span id="patience-percent-text">100%</span>
+              </div>
+              <div class="patience-bar-bg">
+                <div id="patience-bar-fill" class="patience-bar-fill"></div>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
+      </section>
 
-    <!-- 좌측 손님 영역 -->
-    <div id="customer-area" class="hidden">
-        <div id="speech-bubble" class="thick-border">
-            <span id="customer-order-text">카페라떼<br>부탁해요!</span>
+      <!-- [중앙] 유리컵 조제대 -->
+      <section id="center-prep-zone">
+        <div class="prep-status-label">
+          컵 용량: <span id="cup-count-text">0</span> / 3
         </div>
-        <div id="customer-emoji">👱</div>
-        <div id="patience-bar-container">
-            <div id="patience-bar"></div>
-        </div>
-        <div class="patience-label">인내심</div>
-    </div>
 
-    <!-- 중앙 컵 영역 -->
-    <div id="cup-area">
-        <div id="cup">
-            <div id="liquid"></div>
-        </div>
-        <div id="coaster"></div>
-    </div>
-
-    <!-- 우측 레시피 및 재료 -->
-    <div id="right-area">
-        <div id="recipe-board" class="thick-border">
-            <h3>📜 레시피</h3>
-            <div class="recipe-item">
-                <span>에스프레소</span> <span>☕</span>
+        <div class="cup-stand">
+          <!-- 유리잔 -->
+          <div id="glass-cup" class="glass-cup">
+            <div id="liquid-fill" class="liquid-fill">
+              <div class="liquid-surface"></div>
+              <div id="ice-cubes-container" class="ice-cubes-container" style="display: none;">
+                <span class="ice-cube-item">🧊</span>
+                <span class="ice-cube-item">🧊</span>
+                <span class="ice-cube-item">🧊</span>
+              </div>
             </div>
-            <div class="recipe-item">
-                <span>카페라떼</span> <span>☕+🥛</span>
-            </div>
-            <div class="recipe-item">
-                <span>아이스 라떼</span> <span>☕+🥛+🧊</span>
-            </div>
+          </div>
+          <!-- 코스터 -->
+          <div class="coaster"></div>
         </div>
-        
-        <button class="ingredient-btn thick-border" onclick="addIngredient('espresso')">
-            ☕ 에스프레소
-        </button>
-        <button class="ingredient-btn thick-border" onclick="addIngredient('milk')">
-            🥛 우유
-        </button>
-        <button class="ingredient-btn thick-border" onclick="addIngredient('ice')">
-            🧊 얼음
-        </button>
+
+        <!-- 현재 담긴 재료 뱃지 -->
+        <div id="current-ingredients" class="current-ingredients-box">
+          <span class="tag-empty">컵이 비어있습니다.</span>
+        </div>
+      </section>
+
+      <!-- [우측] 레시피 보드 & 재료 투입 버튼 -->
+      <section id="right-recipe-zone">
+        <!-- 레시피 안내판 -->
+        <div class="recipe-board">
+          <div class="recipe-board-title">
+            <span>📜</span> 레시피 가이드
+          </div>
+          <div class="recipe-board-list">
+            <div class="recipe-item" id="recipe-espresso">
+              <span class="recipe-name">☕ 에스프레소</span>
+              <span class="recipe-formula">에스프레소 1개</span>
+            </div>
+            <div class="recipe-item" id="recipe-latte">
+              <span class="recipe-name">🥛 카페라떼</span>
+              <span class="recipe-formula">에스프레소+우유</span>
+            </div>
+            <div class="recipe-item" id="recipe-ice-latte">
+              <span class="recipe-name">🧊 아이스 라떼</span>
+              <span class="recipe-formula">에스프레소+우유+얼음</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 재료 버튼 3종 -->
+        <div class="ingredients-button-grid">
+          <button class="ing-btn" data-ingredient="espresso">
+            <span class="btn-icon">☕</span>
+            <span>에스프레소</span>
+            <span class="btn-desc">+원액</span>
+          </button>
+          <button class="ing-btn" data-ingredient="milk">
+            <span class="btn-icon">🥛</span>
+            <span>우유</span>
+            <span class="btn-desc">+밀크</span>
+          </button>
+          <button class="ing-btn" data-ingredient="ice">
+            <span class="btn-icon">🧊</span>
+            <span>얼음</span>
+            <span class="btn-desc">+아이스</span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- 3. 하단 바 테이블 (서빙 & 버리기) -->
+    <footer id="bottom-table-bar">
+      <button id="btn-trash" class="action-btn btn-trash">
+        <span>🗑️</span> 버리기
+      </button>
+      <button id="btn-serve" class="action-btn btn-serve">
+        <span>🌿</span> 서빙하기
+      </button>
+    </footer>
+
+    <!-- ============================================================
+         모달 1: 게임 시작 화면
+         ============================================================ -->
+    <div id="start-screen" class="screen-overlay">
+      <div class="modal-box">
+        <h1 class="modal-title">☕ 귀여운 카페 경영 게임</h1>
+        <p class="modal-subtitle">스테이지 1: 낭만 카페</p>
+
+        <div class="guide-card-grid">
+          <div class="guide-card">
+            <h4>🎯 영업 목표</h4>
+            • 제한 시간: <strong>60초</strong><br>
+            • 목표 수익: <strong>2,500원 이상</strong><br>
+            • 손님 3명이 화나면 영업 종료!
+          </div>
+          <div class="guide-card">
+            <h4>💡 서빙 팁</h4>
+            • 인내심 50% 이상: <strong>300원</strong> (+팁 50원)<br>
+            • 인내심 20~49%: <strong>250원</strong> (기본)<br>
+            • 인내심 20% 미만: <strong>125원</strong> (반값!)
+          </div>
+        </div>
+
+          <div class="stars-reward-box">
+          <span>⭐ 2,500원+</span>
+          <span>⭐⭐ 3,500원+</span>
+          <span>⭐⭐⭐ 4,500원+</span>
+        </div>
+
+        <div style="font-size: 13px; color: #795548; margin-bottom: 14px; background: rgba(255,255,255,0.6); padding: 6px; border-radius: 8px;">
+          📱 <strong>모바일 터치 완벽 지원!</strong> (PC 단축키: [1][2][3] 재료 • [Space] 서빙 • [C] 버리기)
+        </div>
+
+        <button id="btn-start-game" class="big-action-btn">영업 시작하기 🚀</button>
+      </div>
     </div>
 
-    <!-- 하단 테이블과 버튼 -->
-    <div id="table-line"></div>
-    <div id="bottom-buttons">
-        <button id="btn-serve" class="action-btn thick-border" onclick="serveDrink()">
-            🌿 서빙하기
-        </button>
-        <button id="btn-trash" class="action-btn thick-border" onclick="throwAway()">
-            🗑️ 버리기
-        </button>
+    <!-- ============================================================
+         모달 2: 게임 결과 화면
+         ============================================================ -->
+    <div id="gameover-screen" class="screen-overlay" style="display: none;">
+      <div class="modal-box">
+        <h1 id="result-title" class="modal-title">🎉 영업 종료!</h1>
+        <p id="result-subtitle" class="modal-subtitle">오늘 하루 카페 운영 결과입니다.</p>
+
+        <div id="result-stars" class="star-rating-box">
+          <span class="star-item">★</span>
+          <span class="star-item">★</span>
+          <span class="star-item">★</span>
+        </div>
+
+        <div class="result-stats-table">
+          <div class="row">
+            <span>목표 달성 여부</span>
+            <span id="stat-clear-status" style="font-weight: bold;">성공</span>
+          </div>
+          <div class="row">
+            <span>대만족 손님 (😍 팁)</span>
+            <span id="stat-great-count">0명</span>
+          </div>
+          <div class="row">
+            <span>보통 서빙 (🙂)</span>
+            <span id="stat-normal-count">0명</span>
+          </div>
+          <div class="row">
+            <span>불만족 손님 (😤 반값)</span>
+            <span id="stat-late-count">0명</span>
+          </div>
+          <div class="row">
+            <span>화나서 떠난 손님 (💢)</span>
+            <span id="stat-left-count">0명</span>
+          </div>
+          <div class="row">
+            <span>총 영업 수익</span>
+            <span id="stat-final-money" style="color: #d84315; font-size: 19px;">0원</span>
+          </div>
+        </div>
+
+        <button id="btn-restart-game" class="big-action-btn">다시 도전하기 🔄</button>
+      </div>
     </div>
 
-    <!-- 시작 화면 -->
-    <div id="start-screen" class="overlay">
-        <h1>☕ 낭만 카페 영업시작</h1>
-        <p>
-            재료를 조합해 손님이 원하는 음료를 만드세요!<br>
-            <strong>클리어 목표:</strong> 60초 안에 2,500원 이상 벌기<br>
-            <strong>실패 조건:</strong> 시간 내 목표 미달 또는 손님 3명 놓치기<br>
-            (마우스로 클릭해서 플레이합니다)
-        </p>
-        <button class="start-btn thick-border" onclick="startGame()">영업 시작하기</button>
-    </div>
+  </div>
 
-    <!-- 결과 화면 -->
-    <div id="result-screen" class="overlay hidden">
-        <h1 id="result-title">영업 종료</h1>
-        <h2 id="result-stars" style="font-size: 40px; margin: 10px 0;">⭐⭐⭐</h2>
-        <p id="result-desc">총 수익: 0원</p>
-        <button class="start-btn thick-border" onclick="resetGame()">다시 하기</button>
-    </div>
+  <!-- ============================================================
+       게임 로직 및 오디오 합성 엔진 (Web Audio API)
+       ============================================================ -->
+  <script>
+    /* ------------------------------------------------------------
+       1. 오디오 합성 사운드 매니저 (Web Audio API)
+       외부 오디오 파일 없이 브라우저 내장 신디사이저로 사운드 재생
+       ------------------------------------------------------------ */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.sfxEnabled = true;
+        this.bgmEnabled = true;
+        this.bgmTimer = null;
+        this.bgmStep = 0;
+      }
 
-</div>
+      initContext() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
 
-<script>
-    /* =========================================
-       [설정값] 기획서에 명시되지 않아 임의로 정한 수치들
-       ========================================= */
-    const CONFIG = {
-        GAME_TIME_SEC: 60,        // 전체 게임 시간 (긴장감을 위해 120초 -> 60초로 단축)
-        MAX_HEARTS: 3,            // 목숨 개수 (기획서 3개)
-        DRINK_PRICE: 250,         // 음료 1잔 기본 가격
-        TIP_BONUS: 50,            // 인내심 50% 이상일 때 주는 보너스 팁
-        LATE_PENALTY_RATIO: 0.5,  // 인내심 20% 미만일 때 깎이는 비율 (50%만 지급)
-        MIN_PATIENCE_SEC: 8,      // 참을성 없는 손님 최소 대기 시간 (8초)
-        MAX_PATIENCE_SEC: 15,     // 일반 손님 최대 대기 시간 (15초)
-        MAX_INGREDIENTS: 3,       // 컵에 담을 수 있는 최대 재료 수
-        STAR1_GOAL: 2500,         // 별 1개 클리어 조건 (1000원 -> 2500원으로 상향)
-        STAR2_GOAL: 3500,         // 별 2개 조건
-        STAR3_GOAL: 4500          // 별 3개 조건
+      playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.25) {
+        if (!this.sfxEnabled) return;
+        this.initContext();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.warn("Audio playTone error", e);
+        }
+      }
+
+      playIngredientSound(type) {
+        if (!this.sfxEnabled) return;
+        this.initContext();
+        if (type === 'espresso') {
+          // 따뜻한 붓는 느낌
+          this.playTone(320, 'triangle', 0.18, 0.3);
+          setTimeout(() => this.playTone(480, 'sine', 0.14, 0.2), 60);
+        } else if (type === 'milk') {
+          // 부드러운 우유 느낌
+          this.playTone(520, 'sine', 0.2, 0.25);
+          setTimeout(() => this.playTone(660, 'sine', 0.15, 0.15), 70);
+        } else if (type === 'ice') {
+          // 얼음 딸각 떨어지는 맑은 소리
+          this.playTone(1100, 'triangle', 0.08, 0.3);
+          setTimeout(() => this.playTone(1450, 'sine', 0.1, 0.25), 50);
+        }
+      }
+
+      playTrashSound() {
+        if (!this.sfxEnabled) return;
+        this.initContext();
+        this.playTone(240, 'sawtooth', 0.12, 0.15);
+        setTimeout(() => this.playTone(160, 'triangle', 0.2, 0.2), 60);
+      }
+
+      playSuccessSound(bonus = false) {
+        if (!this.sfxEnabled) return;
+        this.initContext();
+        if (bonus) {
+          // 대만족 팡파르 (C5 -> E5 -> G5 -> C6)
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, idx) => {
+            setTimeout(() => this.playTone(freq, 'triangle', 0.22, 0.25), idx * 80);
+          });
+        } else {
+          // 보통 성공 딩동
+          this.playTone(587.33, 'sine', 0.18, 0.25);
+          setTimeout(() => this.playTone(880, 'sine', 0.25, 0.22), 110);
+        }
+      }
+
+      playLateSound() {
+        if (!this.sfxEnabled) return;
+        this.initContext();
+        this.playTone(440, 'triangle', 0.2, 0.2);
+        setTimeout(() => this.playTone(370, 'triangle', 0.3, 0.2), 120);
+      }
+
+      playWrongSound() {
+        if (!this.sfxEnabled) return;
+        this.initContext();
+        this.playTone(180, 'sawtooth', 0.25, 0.3);
+        setTimeout(() => this.playTone(150, 'sawtooth', 0.3, 0.25), 100);
+      }
+
+      playCustomerAngrySound() {
+        if (!this.sfxEnabled) return;
+        this.initContext();
+        this.playTone(260, 'sawtooth', 0.2, 0.35);
+        setTimeout(() => this.playTone(196, 'sawtooth', 0.35, 0.4), 120);
+      }
+
+      playGameOverSound(isWin) {
+        if (!this.sfxEnabled) return;
+        this.initContext();
+        if (isWin) {
+          const melody = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+          melody.forEach((f, i) => {
+            setTimeout(() => this.playTone(f, 'triangle', 0.3, 0.3), i * 140);
+          });
+        } else {
+          const melody = [440, 415.3, 392, 349.23];
+          melody.forEach((f, i) => {
+            setTimeout(() => this.playTone(f, 'sawtooth', 0.35, 0.28), i * 180);
+          });
+        }
+      }
+
+      // 경쾌한 카페 로우파이 BGM 합성 멜로디 루프
+      startBGM() {
+        if (!this.bgmEnabled) return;
+        if (this.bgmTimer) return;
+        this.initContext();
+
+        // 칠(Chill)한 카페 재즈 피아노 코드 진행 음계
+        const chordChords = [
+          [261.63, 329.63, 392.00, 493.88], // Cmaj7
+          [220.00, 261.63, 329.63, 392.00], // Am7
+          [293.66, 349.23, 440.00, 523.25], // Dm7
+          [196.00, 246.94, 293.66, 392.00]  // G7
+        ];
+
+        this.bgmTimer = setInterval(() => {
+          if (!this.bgmEnabled) return;
+          try {
+            const chord = chordChords[this.bgmStep % chordChords.length];
+            chord.forEach((freq, i) => {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq * 1.5, this.ctx.currentTime);
+
+              const now = this.ctx.currentTime;
+              gain.gain.setValueAtTime(0.025, now);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+
+              osc.connect(gain);
+              gain.connect(this.ctx.destination);
+              osc.start(now + i * 0.08);
+              osc.stop(now + 0.7);
+            });
+            this.bgmStep++;
+          } catch(e) {}
+        }, 750);
+      }
+
+      stopBGM() {
+        if (this.bgmTimer) {
+          clearInterval(this.bgmTimer);
+          this.bgmTimer = null;
+        }
+      }
+    }
+
+    /* ------------------------------------------------------------
+       2. 손님 데이터 및 레시피 정의
+       ------------------------------------------------------------ */
+    const DRINK_RECIPES = {
+      espresso: {
+        id: 'espresso',
+        name: '에스프레소',
+        ingredients: ['espresso'],
+        color: '#3e2723',
+        speech: '"진한 에스프레소 한 잔 부탁해요!"'
+      },
+      latte: {
+        id: 'latte',
+        name: '카페라떼',
+        ingredients: ['espresso', 'milk'],
+        color: '#d7ccc8',
+        speech: '"따뜻하고 부드러운 카페라떼 주세요!"'
+      },
+      ice_latte: {
+        id: 'ice_latte',
+        name: '아이스 라떼',
+        ingredients: ['espresso', 'milk', 'ice'],
+        color: '#d7ccc8',
+        hasIce: true,
+        speech: '"시원한 아이스 라떼 부탁드려요!"'
+      }
     };
 
-    /* =========================================
-       레시피 데이터 (색상 변화 구현)
-       ========================================= */
-    const RECIPES = [
-        { id: 'espresso', name: '에스프레소', ingredients: ['espresso'], color: '#3e2723', requestText: '에스프레소<br>부탁해요!' },
-        { id: 'cafelatte', name: '카페라떼', ingredients: ['espresso', 'milk'], color: '#d7ccc8', requestText: '카페라떼<br>부탁해요!' },
-        { id: 'icedlatte', name: '아이스 라떼', ingredients: ['espresso', 'milk', 'ice'], color: '#d7ccc8', requestText: '아이스 라떼<br>부탁해요!' }
+    const CUSTOMER_PROFILES = [
+      { name: '단골 곰돌이', avatar: '🐻' },
+      { name: '행복한 토끼', avatar: '🐰' },
+      { name: '도도한 고양이', avatar: '🐱' },
+      { name: '활발한 강아지', avatar: '🐶' },
+      { name: '차분한 판다', avatar: '🐼' },
+      { name: '낭만 여우', avatar: '🦊' }
     ];
 
-    const CUSTOMER_FACES = ['👱', '👩', '👨', '👧', '👵', '🧔'];
+    /* ------------------------------------------------------------
+       3. 메인 게임 클래스
+       ------------------------------------------------------------ */
+    class CafeGame {
+      constructor() {
+        this.sound = new SoundEngine();
 
-    /* =========================================
-       게임 상태 변수
-       ========================================= */
-    let currentMoney = 0;
-    let timeLeft = CONFIG.GAME_TIME_SEC;
-    let hearts = CONFIG.MAX_HEARTS;
-    
-    let currentCup = []; // 현재 컵에 담긴 재료 배열
-    let currentOrder = null; // 현재 손님이 주문한 레시피 객체
-    let customerMaxTime = 15000; // 현재 손님의 최대 대기 시간 (ms)
-    let customerTimer = 0; // 손님 남은 인내심 시간 (ms)
-    let patienceInterval = null;
-    let gameTimerInterval = null;
-    let isPlaying = false;
+        // 게임 상태 수치
+        this.money = 0;
+        this.timeLeft = 60;
+        this.hearts = 3;
+        this.isPlaying = false;
+        this.currentIngredients = []; // 현재 컵에 담긴 재료 리스트 (최대 3개)
 
-    /* =========================================
-       DOM 요소 캐싱
-       ========================================= */
-    const uiMoney = document.getElementById('ui-money');
-    const uiTime = document.getElementById('ui-time');
-    const uiHearts = document.getElementById('ui-hearts');
-    const liquidDiv = document.getElementById('liquid');
-    const customerArea = document.getElementById('customer-area');
-    const customerOrderText = document.getElementById('customer-order-text');
-    const customerEmoji = document.getElementById('customer-emoji');
-    const patienceBar = document.getElementById('patience-bar');
-    const startScreen = document.getElementById('start-screen');
-    const resultScreen = document.getElementById('result-screen');
-    const resultTitle = document.getElementById('result-title');
-    const resultStars = document.getElementById('result-stars');
-    const resultDesc = document.getElementById('result-desc');
+        // 손님 상태
+        this.currentCustomer = null;
+        this.customerWaitMax = 12;
+        this.customerWaitRemain = 12;
+        this.customerPatienceRatio = 1.0;
+        this.isCustomerLeaving = false;
 
-    /* =========================================
-       게임 초기화 및 시작 로직
-       ========================================= */
-    function startGame() {
-        startScreen.classList.add('hidden');
-        resetGameData();
-        isPlaying = true;
-        updateUI();
-        spawnCustomer();
-        
-        // 전체 게임 타이머 (1초마다 감소)
-        gameTimerInterval = setInterval(() => {
-            if (!isPlaying) return;
-            timeLeft--;
-            updateUI();
-            if (timeLeft <= 0) {
-                endGame(true); // 시간 종료로 인한 게임 오버(정산)
-            }
-        }, 1000);
-    }
+        // 통계 기록
+        this.stats = {
+          great: 0,
+          normal: 0,
+          late: 0,
+          left: 0
+        };
 
-    function resetGameData() {
-        currentMoney = 0;
-        timeLeft = CONFIG.GAME_TIME_SEC;
-        hearts = CONFIG.MAX_HEARTS;
-        currentCup = [];
-        updateCupVisual();
-    }
+        // 루프 타이머들
+        this.gameTimer = null;
+        this.lastTimestamp = 0;
+        this.animationFrameId = null;
 
-    function updateUI() {
-        uiMoney.innerText = `${currentMoney}원`;
-        uiTime.innerText = `${timeLeft}초`;
-        
-        let heartStr = '';
-        for(let i=0; i<hearts; i++) heartStr += '❤️';
-        for(let i=hearts; i<CONFIG.MAX_HEARTS; i++) heartStr += '🖤';
-        uiHearts.innerText = heartStr;
-    }
+        // DOM 요소 캐싱
+        this.cacheDOM();
+        this.bindEvents();
+      }
 
-    /* =========================================
-       손님 로직 (생성, 인내심 감소, 놓침)
-       ========================================= */
-    function spawnCustomer() {
-        customerArea.classList.remove('hidden');
-        
-        // 랜덤 레시피와 얼굴 지정
-        currentOrder = RECIPES[Math.floor(Math.random() * RECIPES.length)];
-        customerEmoji.innerText = CUSTOMER_FACES[Math.floor(Math.random() * CUSTOMER_FACES.length)];
-        
-        // 8초 ~ 15초 사이 랜덤 대기 시간 설정
-        const randomSec = Math.floor(Math.random() * (CONFIG.MAX_PATIENCE_SEC - CONFIG.MIN_PATIENCE_SEC + 1)) + CONFIG.MIN_PATIENCE_SEC;
-        customerMaxTime = randomSec * 1000;
-        customerTimer = customerMaxTime;
+      cacheDOM() {
+        this.dom = {
+          displayMoney: document.getElementById('display-money'),
+          displayTimer: document.getElementById('display-timer'),
+          displayHearts: document.getElementById('display-hearts'),
 
-        // 10초 이하의 참을성 없는 손님 안내 문구 추가
-        if (randomSec <= 10) {
-            customerOrderText.innerHTML = `<span style="color:#d32f2f; font-size:15px;">⚡빨리 주세요!</span><br>${currentOrder.requestText}`;
-        } else {
-            customerOrderText.innerHTML = currentOrder.requestText;
-        }
-        
-        // 인내심 게이지 초기화
-        patienceBar.style.width = '100%';
-        patienceBar.style.backgroundColor = '#66bb6a';
+          // 좌측 손님존
+          customerWrapper: document.getElementById('customer-wrapper'),
+          urgentBadge: document.getElementById('urgent-badge'),
+          customerOrderDrink: document.getElementById('customer-order-drink'),
+          customerSpeech: document.getElementById('customer-speech'),
+          patiencePercentText: document.getElementById('patience-percent-text'),
+          patienceBarFill: document.getElementById('patience-bar-fill'),
+          customerAvatar: document.getElementById('customer-avatar'),
+          customerEmotion: document.getElementById('customer-emotion'),
+          customerName: document.getElementById('customer-name'),
 
-        clearInterval(patienceInterval);
-        patienceInterval = setInterval(() => {
-            if (!isPlaying) return;
-            customerTimer -= 50; // 50ms 마다 갱신하여 부드럽게 줄어들게 함
-            let percent = (customerTimer / customerMaxTime) * 100;
-            patienceBar.style.width = `${percent}%`;
+          // 중앙 컵존
+          glassCup: document.getElementById('glass-cup'),
+          liquidFill: document.getElementById('liquid-fill'),
+          iceCubesContainer: document.getElementById('ice-cubes-container'),
+          cupCountText: document.getElementById('cup-count-text'),
+          currentIngredients: document.getElementById('current-ingredients'),
 
-            // 남은 인내심 비율에 따라 초록 -> 노랑(주황) -> 빨강으로 색상 변경
-            if (percent >= 50) {
-                patienceBar.style.backgroundColor = '#66bb6a'; // 초록색 (여유)
-            } else if (percent >= 20) {
-                patienceBar.style.backgroundColor = '#ffa726'; // 주황/노란색 (주의)
-            } else {
-                patienceBar.style.backgroundColor = '#ef5350'; // 빨간색 (위험)
-            }
+          // 우측 레시피 & 버튼
+          recipeEspresso: document.getElementById('recipe-espresso'),
+          recipeLatte: document.getElementById('recipe-latte'),
+          recipeIceLatte: document.getElementById('recipe-ice-latte'),
+          ingButtons: document.querySelectorAll('.ing-btn'),
 
-            if (customerTimer <= 0) {
-                missCustomer();
-            }
-        }, 50);
-    }
+          // 하단 버튼
+          btnTrash: document.getElementById('btn-trash'),
+          btnServe: document.getElementById('btn-serve'),
 
-    function missCustomer() {
-        clearInterval(patienceInterval);
-        customerEmoji.innerText = '💢'; // 화난 표정
-        customerOrderText.innerHTML = "너무 늦어!<br>갈래!";
-        
-        setTimeout(() => {
-            hearts--;
-            updateUI();
-            if (hearts <= 0) {
-                endGame(false); // 목숨 소진으로 즉시 실패
-            } else {
-                spawnCustomer(); // 다음 손님 등장
-            }
-        }, 1000);
-    }
+          // 모달 화면
+          startScreen: document.getElementById('start-screen'),
+          gameoverScreen: document.getElementById('gameover-screen'),
+          btnStartGame: document.getElementById('btn-start-game'),
+          btnRestartGame: document.getElementById('btn-restart-game'),
 
-    /* =========================================
-       음료 제작 로직 (재료 넣기, 색상 섞기)
-       ========================================= */
-    function addIngredient(ingName) {
-        if (!isPlaying || currentCup.length >= CONFIG.MAX_INGREDIENTS) return;
-        
-        currentCup.push(ingName);
-        updateCupVisual();
-    }
+          // 결과 화면 내용
+          resultTitle: document.getElementById('result-title'),
+          resultSubtitle: document.getElementById('result-subtitle'),
+          resultStars: document.getElementById('result-stars'),
+          statClearStatus: document.getElementById('stat-clear-status'),
+          statGreatCount: document.getElementById('stat-great-count'),
+          statNormalCount: document.getElementById('stat-normal-count'),
+          statLateCount: document.getElementById('stat-late-count'),
+          statLeftCount: document.getElementById('stat-left-count'),
+          statFinalMoney: document.getElementById('stat-final-money'),
 
-    function updateCupVisual() {
-        const fillPercent = (currentCup.length / CONFIG.MAX_INGREDIENTS) * 100;
-        liquidDiv.style.height = `${fillPercent}%`;
-        
-        // 색상 섞기 결정
-        let hasEspresso = currentCup.includes('espresso');
-        let hasMilk = currentCup.includes('milk');
-        let hasIce = currentCup.includes('ice');
+          // 오디오 버튼
+          btnToggleBgm: document.getElementById('btn-toggle-bgm'),
+          btnToggleSfx: document.getElementById('btn-toggle-sfx'),
 
-        liquidDiv.innerHTML = ''; // 얼음 초기화
+          gameContainer: document.getElementById('game-container')
+        };
+      }
 
-        if (currentCup.length === 0) {
-            liquidDiv.style.backgroundColor = 'transparent';
-        } else {
-            // 커피와 우유가 섞이는 시각적 효과 구현
-            if (hasEspresso && hasMilk) liquidDiv.style.backgroundColor = '#d7ccc8'; // 라떼 색
-            else if (hasMilk && !hasEspresso) liquidDiv.style.backgroundColor = '#ffffff'; // 우유 색
-            else if (hasEspresso && !hasMilk) liquidDiv.style.backgroundColor = '#3e2723'; // 에스프레소 색
-            else liquidDiv.style.backgroundColor = '#e0f7fa'; // 얼음만 있을때 물 느낌
-            
-            // 얼음이 있다면 시각적으로 추가
-            if (hasIce) {
-                let iceCount = currentCup.filter(i => i === 'ice').length;
-                for(let i=0; i<iceCount * 2; i++) {
-                    let ice = document.createElement('div');
-                    ice.className = 'ice-cube';
-                    ice.innerText = '🧊';
-                    liquidDiv.appendChild(ice);
-                }
-            }
-        }
-    }
+      bindEvents() {
+        // 영업 시작 & 다시 하기
+        this.dom.btnStartGame.addEventListener('click', () => {
+          this.sound.initContext();
+          this.sound.startBGM();
+          this.startGame();
+        });
 
-    /* =========================================
-       서빙 및 버리기 로직 (남은 인내심에 따른 만족도/수입 차등)
-       ========================================= */
-    function serveDrink() {
-        if (!isPlaying || currentCup.length === 0 || !currentOrder) return;
+        this.dom.btnRestartGame.addEventListener('click', () => {
+          this.startGame();
+        });
 
-        // 재료 배열을 정렬하여 순서 상관없이 조합만 맞으면 정답 처리
-        let cupSorted = [...currentCup].sort().join(',');
-        let orderSorted = [...currentOrder.ingredients].sort().join(',');
+        // 재료 추가 버튼 클릭
+        this.dom.ingButtons.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const ingType = btn.getAttribute('data-ingredient');
+            this.addIngredient(ingType);
+          });
+        });
 
-        if (cupSorted === orderSorted) {
-            // 정답! 남은 인내심 비율 계산 (0% ~ 100%)
-            clearInterval(patienceInterval);
-            const patiencePercent = (customerTimer / customerMaxTime) * 100;
-            let earnedMoney = CONFIG.DRINK_PRICE;
+        // 서빙 & 버리기 액션
+        this.dom.btnServe.addEventListener('click', () => this.serveDrink());
+        this.dom.btnTrash.addEventListener('click', () => this.trashCup());
 
-            if (patiencePercent >= 50) {
-                // 50% 이상 남음: 대만족 (기본금 + 보너스 팁)
-                earnedMoney += CONFIG.TIP_BONUS;
-                customerEmoji.innerText = '😍';
-                customerOrderText.innerHTML = `최고예요! (+${earnedMoney}원)<br>팁까지 드릴게요!`;
-            } else if (patiencePercent >= 20) {
-                // 20% ~ 50% 남음: 보통 (기본금만)
-                customerEmoji.innerText = '🙂';
-                customerOrderText.innerHTML = `감사합니다! (+${earnedMoney}원)<br>잘 마실게요.`;
-            } else {
-                // 20% 미만 남음: 불만족 (금액 절반으로 삭감)
-                earnedMoney = Math.floor(CONFIG.DRINK_PRICE * CONFIG.LATE_PENALTY_RATIO);
-                customerEmoji.innerText = '😤';
-                customerOrderText.innerHTML = `너무 늦었어요! (+${earnedMoney}원)<br>반값만 낼게요.`;
-            }
+        // BGM 토글
+        this.dom.btnToggleBgm.addEventListener('click', () => {
+          this.sound.bgmEnabled = !this.sound.bgmEnabled;
+          this.dom.btnToggleBgm.textContent = this.sound.bgmEnabled ? '🎵' : '🔇';
+          if (this.sound.bgmEnabled && this.isPlaying) {
+            this.sound.startBGM();
+          } else {
+            this.sound.stopBGM();
+          }
+        });
 
-            currentMoney += earnedMoney;
-            updateUI();
-            
-            throwAway(); // 컵 비우기
-            
-            setTimeout(() => {
-                if(isPlaying) spawnCustomer();
-            }, 900);
-        } else {
-            // 오답! (기획서에 오답 페널티가 없으므로 컵만 흔들림 효과)
-            document.getElementById('cup').classList.add('shake-anim');
-            setTimeout(() => document.getElementById('cup').classList.remove('shake-anim'), 300);
-        }
-    }
+        // 모바일 터치 시 즉시 오디오 컨텍스트 언락
+        const unlockAudio = () => {
+          this.sound.initContext();
+          window.removeEventListener('touchstart', unlockAudio);
+          window.removeEventListener('touchend', unlockAudio);
+        };
+        window.addEventListener('touchstart', unlockAudio, { passive: true });
+        window.addEventListener('touchend', unlockAudio, { passive: true });
 
-    function throwAway() {
-        if (!isPlaying) return;
-        currentCup = [];
-        updateCupVisual();
-    }
+        // SFX 토글
+        this.dom.btnToggleSfx.addEventListener('click', () => {
+          this.sound.sfxEnabled = !this.sound.sfxEnabled;
+          this.dom.btnToggleSfx.textContent = this.sound.sfxEnabled ? '🔊' : '🔈';
+        });
 
-    /* =========================================
-       게임 종료 및 정산
-       ========================================= */
-    function endGame(isTimeOver) {
-        isPlaying = false;
-        clearInterval(patienceInterval);
-        clearInterval(gameTimerInterval);
-        
-        customerArea.classList.add('hidden');
-        resultScreen.classList.remove('hidden');
-        
-        if (hearts <= 0) {
-            // 실패 조건 2: 손님이 화내며 나가서 하트가 다 닳았을 때
-            resultTitle.innerText = "영업 실패...";
-            resultStars.innerText = "💔💔💔";
-            resultDesc.innerText = "손님들이 화가 나서 다 가버렸어요.\n벌어들인 돈: " + currentMoney + "원";
-        } else {
-            // 시간 종료 정산
-            if (currentMoney >= CONFIG.STAR3_GOAL) {
-                resultTitle.innerText = "영업 대성공!";
-                resultStars.innerText = "⭐⭐⭐";
-            } else if (currentMoney >= CONFIG.STAR2_GOAL) {
-                resultTitle.innerText = "영업 성공!";
-                resultStars.innerText = "⭐⭐";
-            } else if (currentMoney >= CONFIG.STAR1_GOAL) {
-                resultTitle.innerText = "무난한 하루!";
-                resultStars.innerText = "⭐";
-            } else {
-                // 실패 조건 1: 2500원을 못 벌었을 때
-                resultTitle.innerText = "영업 실패...";
-                resultStars.innerText = "목표 금액 미달";
-            }
-            resultDesc.innerText = `총 수익: ${currentMoney}원\n목표치(2,500원)를 확인해 보세요!`;
-        }
-    }
-
-    function resetGame() {
-        resultScreen.classList.add('hidden');
-        startScreen.classList.remove('hidden');
-    }
-
-    // 키보드 스페이스 및 방향키 스크롤 방지
-    window.addEventListener('keydown', function(e) {
-        if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        // 키보드 단축키 지원 (1: 에스프레소, 2: 우유, 3: 얼음, Space/Enter: 서빙, Backspace/Delete/C: 버리기)
+        window.addEventListener('keydown', (e) => {
+          if (!this.isPlaying) return;
+          if (e.key === '1') {
+            this.addIngredient('espresso');
+          } else if (e.key === '2') {
+            this.addIngredient('milk');
+          } else if (e.key === '3') {
+            this.addIngredient('ice');
+          } else if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
+            this.serveDrink();
+          } else if (e.key === 'c' || e.key === 'C' || e.key === 'Delete' || e.key === 'Backspace') {
+            e.preventDefault();
+            this.trashCup();
+          }
+        });
+      }
+
+      /* ------------------------------------------------------------
+         게임 라이프사이클
+         ------------------------------------------------------------ */
+      startGame() {
+        this.money = 0;
+        this.timeLeft = 60;
+        this.hearts = 3;
+        this.currentIngredients = [];
+        this.stats = { great: 0, normal: 0, late: 0, left: 0 };
+        this.isPlaying = true;
+        this.isCustomerLeaving = false;
+
+        this.dom.startScreen.style.display = 'none';
+        this.dom.gameoverScreen.style.display = 'none';
+
+        this.updateTopBarUI();
+        this.updateCupVisuals();
+
+        // 60초 게임 타이머 시작 (1초 주기)
+        if (this.gameTimer) clearInterval(this.gameTimer);
+        this.gameTimer = setInterval(() => {
+          if (!this.isPlaying) return;
+          this.timeLeft--;
+          this.updateTopBarUI();
+
+          if (this.timeLeft <= 0) {
+            this.endGame(this.money >= 2500, 'time_up');
+          }
+        }, 1000);
+
+        // 첫 손님 소환
+        this.spawnCustomer();
+
+        // 부드러운 손님 인내심 게이지 업데이트를 위한 rAF 루프
+        this.lastTimestamp = performance.now();
+        if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+        this.tick = this.tick.bind(this);
+        this.animationFrameId = requestAnimationFrame(this.tick);
+      }
+
+      tick(timestamp) {
+        if (!this.isPlaying) return;
+        const delta = (timestamp - this.lastTimestamp) / 1000;
+        this.lastTimestamp = timestamp;
+
+        if (this.currentCustomer && !this.isCustomerLeaving) {
+          this.customerWaitRemain -= delta;
+          this.customerPatienceRatio = Math.max(0, this.customerWaitRemain / this.customerWaitMax);
+
+          this.updatePatienceBarUI();
+
+          // 인내심 소진 시 손님 분노 퇴장
+          if (this.customerWaitRemain <= 0) {
+            this.handleCustomerTimeout();
+          }
         }
-    }, false);
 
-</script>
+        this.animationFrameId = requestAnimationFrame(this.tick);
+      }
 
+      /* ------------------------------------------------------------
+         손님 생성 및 인내심 관리
+         ------------------------------------------------------------ */
+      spawnCustomer() {
+        if (!this.isPlaying) return;
+        this.isCustomerLeaving = false;
+
+        // 랜덤 손님 프로필 선정
+        const profile = CUSTOMER_PROFILES[Math.floor(Math.random() * CUSTOMER_PROFILES.length)];
+
+        // 주문 메뉴 선정 (에스프레소, 카페라떼, 아이스 라떼)
+        const drinkKeys = Object.keys(DRINK_RECIPES);
+        const chosenDrinkKey = drinkKeys[Math.floor(Math.random() * drinkKeys.length)];
+        const orderDrink = DRINK_RECIPES[chosenDrinkKey];
+
+        // 대기 시간: 8초 ~ 15초 사이 랜덤 설정
+        const waitTime = Math.floor(Math.random() * 8) + 8; // 8, 9, 10, 11, 12, 13, 14, 15
+
+        this.currentCustomer = {
+          name: profile.name,
+          avatar: profile.avatar,
+          order: orderDrink,
+          waitTime: waitTime
+        };
+
+        this.customerWaitMax = waitTime;
+        this.customerWaitRemain = waitTime;
+        this.customerPatienceRatio = 1.0;
+
+        // UI 갱신
+        this.dom.customerAvatar.textContent = profile.avatar;
+        this.dom.customerName.textContent = profile.name;
+        this.dom.customerOrderDrink.textContent = orderDrink.name;
+        this.dom.customerSpeech.textContent = orderDrink.speech;
+        this.dom.customerEmotion.textContent = '✨';
+
+        // 10초 이하 배정 손님은 "⚡빨리 주세요!" 뱃지 표시
+        if (waitTime <= 10) {
+          this.dom.urgentBadge.style.display = 'inline-block';
+        } else {
+          this.dom.urgentBadge.style.display = 'none';
+        }
+
+        // 레시피 보드에서 현재 주문 메뉴 하이라이트
+        this.highlightActiveRecipe(orderDrink.id);
+
+        // 입장 애니메이션
+        this.dom.customerWrapper.classList.remove('leaving');
+        this.dom.customerWrapper.classList.add('entering');
+        setTimeout(() => {
+          this.dom.customerWrapper.classList.remove('entering');
+        }, 300);
+
+        this.updatePatienceBarUI();
+      }
+
+      highlightActiveRecipe(orderId) {
+        this.dom.recipeEspresso.classList.toggle('active-target', orderId === 'espresso');
+        this.dom.recipeLatte.classList.toggle('active-target', orderId === 'latte');
+        this.dom.recipeIceLatte.classList.toggle('active-target', orderId === 'ice_latte');
+      }
+
+      updatePatienceBarUI() {
+        const percent = Math.max(0, Math.round(this.customerPatienceRatio * 100));
+        this.dom.patienceBarFill.style.width = percent + '%';
+        this.dom.patiencePercentText.textContent = percent + '%';
+
+        // 기획서 4.3 색상 및 손님 표정 차등
+        // 50% 이상: 🟢 초록색 (#66bb6a)
+        // 20% ~ 49%: 🟠 주황색 (#ffa726)
+        // 20% 미만: 🔴 빨간색 (#ef5350)
+        if (this.customerPatienceRatio >= 0.5) {
+          this.dom.patienceBarFill.style.backgroundColor = 'var(--green-gauge)';
+          this.dom.customerEmotion.textContent = '😍';
+        } else if (this.customerPatienceRatio >= 0.2) {
+          this.dom.patienceBarFill.style.backgroundColor = 'var(--orange-gauge)';
+          this.dom.customerEmotion.textContent = '🙂';
+        } else {
+          this.dom.patienceBarFill.style.backgroundColor = 'var(--red-gauge)';
+          this.dom.customerEmotion.textContent = '😤';
+        }
+      }
+
+      triggerHaptic(pattern = 10) {
+        if ('vibrate' in navigator) {
+          try {
+            navigator.vibrate(pattern);
+          } catch (e) {}
+        }
+      }
+
+      handleCustomerTimeout() {
+        if (this.isCustomerLeaving) return;
+        this.isCustomerLeaving = true;
+        this.stats.left++;
+
+        this.triggerHaptic([40, 50, 40]);
+        this.sound.playCustomerAngrySound();
+
+        // 피드백 말풍선 및 감정
+        this.dom.customerSpeech.textContent = '"너무 오래 기다렸잖아요! 안 마셔요! 💢"';
+        this.dom.customerEmotion.textContent = '💢';
+
+        // 하트 1개 차감
+        this.hearts--;
+        this.updateTopBarUI();
+        this.showFloatingFeedback('💔 손님이 화나서 떠났습니다!', '#ef5350');
+
+        // 하트 소진 시 게임 오버
+        if (this.hearts <= 0) {
+          this.endGame(false, 'hearts_zero');
+          return;
+        }
+
+        // 손님 퇴장 후 다음 손님 소환
+        this.dom.customerWrapper.classList.add('leaving');
+        setTimeout(() => {
+          this.spawnCustomer();
+        }, 500);
+      }
+
+      /* ------------------------------------------------------------
+         음료 제조 및 컵 시각 효과 로직
+         ------------------------------------------------------------ */
+      addIngredient(ingredientType) {
+        if (!this.isPlaying) return;
+
+        // 최대 3개까지 담기 가능
+        if (this.currentIngredients.length >= 3) {
+          this.triggerHaptic([30, 40, 30]);
+          this.sound.playWrongSound();
+          this.showFloatingFeedback('컵이 꽉 찼습니다! (최대 3개)', '#e65100');
+          return;
+        }
+
+        this.triggerHaptic(12);
+        this.sound.playIngredientSound(ingredientType);
+        this.currentIngredients.push(ingredientType);
+        this.updateCupVisuals();
+      }
+
+      trashCup() {
+        if (!this.isPlaying) return;
+        if (this.currentIngredients.length === 0) return;
+
+        this.triggerHaptic(20);
+        this.sound.playTrashSound();
+        this.currentIngredients = [];
+        this.updateCupVisuals();
+        this.showFloatingFeedback('컵을 비웠습니다 🗑️', '#8d6e63');
+      }
+
+      updateCupVisuals() {
+        const count = this.currentIngredients.length;
+        this.dom.cupCountText.textContent = count;
+
+        // 컵에 담긴 재료 태그 렌더링
+        this.dom.currentIngredients.innerHTML = '';
+        if (count === 0) {
+          this.dom.currentIngredients.innerHTML = '<span class="tag-empty">컵이 비어있습니다.</span>';
+        } else {
+          const nameMap = { espresso: '☕ 에스프레소', milk: '🥛 우유', ice: '🧊 얼음' };
+          this.currentIngredients.forEach(item => {
+            const span = document.createElement('span');
+            span.className = 'ingredient-tag';
+            span.textContent = nameMap[item] || item;
+            this.dom.currentIngredients.appendChild(span);
+          });
+        }
+
+        // 액체 채움 높이 (0개: 0%, 1개: 34%, 2개: 68%, 3개: 96%)
+        const heights = ['0%', '34%', '68%', '96%'];
+        this.dom.liquidFill.style.height = heights[count];
+
+        // 얼음 이모지 표시 여부
+        const hasIce = this.currentIngredients.includes('ice');
+        this.dom.iceCubesContainer.style.display = hasIce ? 'flex' : 'none';
+
+        // 액체 색상 계산
+        const hasEspresso = this.currentIngredients.includes('espresso');
+        const hasMilk = this.currentIngredients.includes('milk');
+
+        let liquidColor = 'transparent';
+        if (count > 0) {
+          if (hasEspresso && hasMilk) {
+            // 부드러운 라떼색 액체 (#d7ccc8)
+            liquidColor = '#d7ccc8';
+          } else if (hasEspresso && !hasMilk) {
+            // 진한 갈색 액체 (#3e2723)
+            liquidColor = '#3e2723';
+          } else if (!hasEspresso && hasMilk) {
+            // 순수 우유색
+            liquidColor = '#fffde7';
+          } else if (hasIce && !hasEspresso && !hasMilk) {
+            // 얼음물 느낌의 연한 푸른빛
+            liquidColor = 'rgba(224, 247, 250, 0.6)';
+          }
+        }
+        this.dom.liquidFill.style.backgroundColor = liquidColor;
+      }
+
+      /* ------------------------------------------------------------
+         서빙 검증 및 만족도/수익 처리
+         ------------------------------------------------------------ */
+      serveDrink() {
+        if (!this.isPlaying || this.isCustomerLeaving || !this.currentCustomer) return;
+
+        if (this.currentIngredients.length === 0) {
+          this.triggerHaptic([30, 40, 30]);
+          this.sound.playWrongSound();
+          this.showFloatingFeedback('컵이 비어있어요! 💦', '#ef5350');
+          this.shakeCup();
+          return;
+        }
+
+        // 정답 검증: 재료 담는 순서에 상관없이 요구 재료 조합과 일치하는지 비교
+        const isCorrect = this.checkRecipeMatch(this.currentIngredients, this.currentCustomer.order.ingredients);
+
+        if (!isCorrect) {
+          // 오답 처리: 컵 흔들림 + 오답음 + 안내
+          this.triggerHaptic([40, 50, 40]);
+          this.sound.playWrongSound();
+          this.shakeCup();
+          this.showFloatingFeedback('손님이 주문한 음료가 아니에요! 💦', '#ef5350');
+          return;
+        }
+
+        // 정답 서빙 성공!
+        this.handleServeSuccess();
+      }
+
+      checkRecipeMatch(current, required) {
+        if (current.length !== required.length) return false;
+        // 개수 비교를 위해 정렬 후 비교
+        const sortedCurrent = [...current].sort();
+        const sortedRequired = [...required].sort();
+        return sortedCurrent.every((val, idx) => val === sortedRequired[idx]);
+      }
+
+      shakeCup() {
+        this.dom.glassCup.classList.remove('shake-cup');
+        void this.dom.glassCup.offsetWidth; // 강제 리플로우
+        this.dom.glassCup.classList.add('shake-cup');
+      }
+
+      handleServeSuccess() {
+        this.isCustomerLeaving = true;
+        const ratio = this.customerPatienceRatio;
+
+        let rewardMoney = 250;
+        let emotionIcon = '🙂';
+        let feedbackSpeech = '';
+        let floatColor = '#2e7d32';
+
+        // 기획서 4.3 만족도 및 최종 수입 차등 시스템
+        if (ratio >= 0.5) {
+          // 50% 이상: 대만족 300원 (250원 + 보너스 팁 50원)
+          rewardMoney = 300;
+          emotionIcon = '😍';
+          feedbackSpeech = '"최고예요! 팁까지 드릴게요!"';
+          floatColor = '#2e7d32';
+          this.stats.great++;
+          this.triggerHaptic([20, 40, 20]);
+          this.sound.playSuccessSound(true);
+        } else if (ratio >= 0.2) {
+          // 20% ~ 49%: 보통 250원
+          rewardMoney = 250;
+          emotionIcon = '🙂';
+          feedbackSpeech = '"감사합니다! 잘 마실게요."';
+          floatColor = '#f57c00';
+          this.stats.normal++;
+          this.triggerHaptic(20);
+          this.sound.playSuccessSound(false);
+        } else {
+          // 20% 미만: 불만족 125원 (반값)
+          rewardMoney = 125;
+          emotionIcon = '😤';
+          feedbackSpeech = '"너무 늦었어요! 반값만 낼게요."';
+          floatColor = '#d32f2f';
+          this.stats.late++;
+          this.triggerHaptic(35);
+          this.sound.playLateSound();
+        }
+
+        // 수입 추가 및 UI 반영
+        this.money += rewardMoney;
+        this.updateTopBarUI();
+
+        // 플로팅 보상 텍스트 표시
+        this.showFloatingFeedback(`+${rewardMoney}원 획득! 💰`, floatColor);
+
+        // 손님 반응 업데이트
+        this.dom.customerSpeech.textContent = feedbackSpeech;
+        this.dom.customerEmotion.textContent = emotionIcon;
+
+        // 컵 비우기
+        this.currentIngredients = [];
+        this.updateCupVisuals();
+
+        // 손님 퇴장 및 새 손님 입장
+        this.dom.customerWrapper.classList.add('leaving');
+        setTimeout(() => {
+          this.spawnCustomer();
+        }, 550);
+      }
+
+      showFloatingFeedback(text, color = '#2e7d32') {
+        const floatEl = document.createElement('div');
+        floatEl.className = 'floating-feedback';
+        floatEl.style.color = color;
+        floatEl.textContent = text;
+        floatEl.style.left = '50%';
+        floatEl.style.top = '52%';
+
+        this.dom.gameContainer.appendChild(floatEl);
+
+        setTimeout(() => {
+          if (floatEl.parentNode) {
+            floatEl.parentNode.removeChild(floatEl);
+          }
+        }, 1200);
+      }
+
+      /* ------------------------------------------------------------
+         상단 상태 바 UI 갱신
+         ------------------------------------------------------------ */
+      updateTopBarUI() {
+        this.dom.displayMoney.textContent = this.money.toLocaleString() + '원';
+        this.dom.displayTimer.textContent = this.timeLeft + '초';
+
+        // 10초 이하 시 긴박감 깜빡임
+        if (this.timeLeft <= 10 && this.isPlaying) {
+          this.dom.displayTimer.classList.add('timer-warning');
+        } else {
+          this.dom.displayTimer.classList.remove('timer-warning');
+        }
+
+        // 하트 3개 표시 (❤️❤️❤️ -> ❤️❤️🖤)
+        let heartsStr = '';
+        for (let i = 0; i < 3; i++) {
+          heartsStr += i < this.hearts ? '❤️' : '🖤';
+        }
+        this.dom.displayHearts.textContent = heartsStr;
+      }
+
+      /* ------------------------------------------------------------
+         게임 종료 및 결과 화면
+         ------------------------------------------------------------ */
+      endGame(isClear, reason) {
+        this.isPlaying = false;
+        clearInterval(this.gameTimer);
+        cancelAnimationFrame(this.animationFrameId);
+
+        // 별점 계산 기준
+        // ⭐ (무난한 하루): 2,500원 이상
+        // ⭐⭐ (영업 성공): 3,500원 이상
+        // ⭐⭐⭐ (영업 대성공): 4,500원 이상
+        let starCount = 0;
+        if (this.money >= 4500) starCount = 3;
+        else if (this.money >= 3500) starCount = 2;
+        else if (this.money >= 2500) starCount = 1;
+
+        const isWin = isClear && starCount >= 1;
+        this.sound.playGameOverSound(isWin);
+
+        // 결과 화면 타이틀 및 서브타이틀
+        if (isWin) {
+          let tierName = starCount === 3 ? '영업 대성공! ⭐⭐⭐' : (starCount === 2 ? '영업 성공! ⭐⭐' : '무난한 하루! ⭐');
+          this.dom.resultTitle.textContent = '🎉 ' + tierName;
+          this.dom.resultSubtitle.textContent = `목표 2,500원을 뛰어넘고 총 ${this.money.toLocaleString()}원을 벌었습니다!`;
+          this.dom.statClearStatus.textContent = '영업 클리어 성공! ✨';
+          this.dom.statClearStatus.style.color = '#2e7d32';
+        } else {
+          this.dom.resultTitle.textContent = '😭 영업 실패...';
+          if (reason === 'hearts_zero') {
+            this.dom.resultSubtitle.textContent = '손님들이 화가 나서 모두 돌아갔어요 (하트 0개)';
+          } else {
+            this.dom.resultSubtitle.textContent = `목표 금액 2,500원에 미달했습니다. (${this.money.toLocaleString()}원)`;
+          }
+          this.dom.statClearStatus.textContent = '영업 목표 미달 💸';
+          this.dom.statClearStatus.style.color = '#c62828';
+        }
+
+        // 별점 렌더링
+        const starSpans = this.dom.resultStars.querySelectorAll('.star-item');
+        starSpans.forEach((star, idx) => {
+          if (idx < starCount && isWin) {
+            star.classList.add('active-star');
+            star.textContent = '★';
+          } else {
+            star.classList.remove('active-star');
+            star.textContent = '☆';
+          }
+        });
+
+        // 통계 수치 바인딩
+        this.dom.statGreatCount.textContent = `${this.stats.great}명 (+팁 50원)`;
+        this.dom.statNormalCount.textContent = `${this.stats.normal}명`;
+        this.dom.statLateCount.textContent = `${this.stats.late}명 (반값)`;
+        this.dom.statLeftCount.textContent = `${this.stats.left}명`;
+        this.dom.statFinalMoney.textContent = `${this.money.toLocaleString()}원 (목표: 2,500원)`;
+
+        // 모달 띄우기
+        this.dom.gameoverScreen.style.display = 'flex';
+      }
+    }
+
+    // 게임 인스턴스 초기화
+    window.addEventListener('DOMContentLoaded', () => {
+      window.cafeGame = new CafeGame();
+    });
+  </script>
 </body>
 </html>
